@@ -11,7 +11,7 @@ import {
 } from "react-native";
 
 /* ─── Importacion de Custom Hooks y Hooks─── */
-import { useAuth } from "@/features/auth";
+import useAuth from "@/features/auth/hooks/useAuth";
 import { useState } from "react";
 
 /* ─── Importacion de iconos y materiales que se usaran para la screen ─── */
@@ -19,8 +19,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 /* ─── Importacion de Colores Globales ─── */
-import { COLORS } from "@/shared";
-import { ThemedText } from "@/shared";
+import { COLORS, ThemedText } from "@/shared";
 
 type Role = "padre" | "docente" | "admin";
 
@@ -245,7 +244,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 24,
-    paddingVertical: 48,
+    paddingTop: 24,
+    paddingBottom: 48,
   },
 
   /* ─── Brand ─── */
