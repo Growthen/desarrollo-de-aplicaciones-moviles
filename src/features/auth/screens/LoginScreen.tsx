@@ -1,5 +1,6 @@
 import { useState } from "react";
 import {
+  ActivityIndicator,
   Dimensions,
   KeyboardAvoidingView,
   Platform,
@@ -11,6 +12,18 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { useFonts } from "expo-font";
+import {
+  PlusJakartaSans_700Bold,
+  PlusJakartaSans_800ExtraBold,
+} from "@expo-google-fonts/plus-jakarta-sans";
+import {
+  Manrope_400Regular,
+  Manrope_600SemiBold,
+  Manrope_700Bold,
+} from "@expo-google-fonts/manrope";
 
 import useAuth from "../hooks/useAuth";
 
@@ -34,10 +47,12 @@ const COLORS = {
 
 type Role = "padre" | "docente" | "admin";
 
-const ROLES: { key: Role; label: string; icon: string }[] = [
-  { key: "padre", label: "Padre", icon: "👨👩👧" },
-  { key: "docente", label: "Docente", icon: "📚" },
-  { key: "admin", label: "Admin", icon: "⚙️" },
+type MaterialIconName = React.ComponentProps<typeof MaterialIcons>["name"];
+
+const ROLES: { key: Role; label: string; icon: MaterialIconName }[] = [
+  { key: "padre", label: "Padre", icon: "family-restroom" },
+  { key: "docente", label: "Docente", icon: "local-library" },
+  { key: "admin", label: "Admin", icon: "admin-panel-settings" },
 ];
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -45,14 +60,32 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 export default function LoginScreen() {
   const { login } = useAuth();
 
+  const [fontsLoaded] = useFonts({
+    PlusJakartaSans_700Bold,
+    PlusJakartaSans_800ExtraBold,
+    Manrope_400Regular,
+    Manrope_600SemiBold,
+    Manrope_700Bold,
+  });
+
   const [selectedRole, setSelectedRole] = useState<Role>("padre");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
 
   const handleLogin = () => {
     login();
   };
+
+  if (!fontsLoaded) {
+    return (
+      <View style={[styles.root, styles.loadingContainer]}>
+        <StatusBar barStyle="dark-content" backgroundColor={COLORS.surface} />
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.root}>
@@ -74,7 +107,7 @@ export default function LoginScreen() {
           {/* ─── Brand / Header ─── */}
           <View style={styles.brandContainer}>
             <View style={styles.iconBox}>
-              <Text style={styles.schoolIcon}>🎓</Text>
+              <MaterialIcons name="school" size={32} color={COLORS.primary} />
             </View>
 
             <Text style={styles.brandTitle}>Trilce</Text>
@@ -95,7 +128,15 @@ export default function LoginScreen() {
                     style={[styles.roleItem, isActive && styles.roleItemActive]}
                     onPress={() => setSelectedRole(role.key)}
                   >
-                    <Text style={styles.roleIcon}>{role.icon}</Text>
+                    <MaterialIcons
+                      name={role.icon}
+                      size={22}
+                      color={
+                        isActive
+                          ? COLORS.primary
+                          : COLORS.onSurfaceVariant
+                      }
+                    />
                     <Text
                       style={[
                         styles.roleLabel,
@@ -112,8 +153,18 @@ export default function LoginScreen() {
             {/* Email Field */}
             <View style={styles.fieldGroup}>
               <Text style={styles.label}>Correo Electrónico</Text>
-              <View style={styles.inputWrapper}>
-                <Text style={styles.inputIconText}>✉️</Text>
+              <View
+                style={[
+                  styles.inputWrapper,
+                  focusedField === "email" && styles.inputWrapperFocused,
+                ]}
+              >
+                <MaterialIcons
+                  name="mail-outline"
+                  size={20}
+                  color={COLORS.outline}
+                  style={styles.inputIcon}
+                />
                 <TextInput
                   style={styles.input}
                   placeholder="tu@correo.com"
@@ -123,6 +174,8 @@ export default function LoginScreen() {
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoComplete="email"
+                  onFocus={() => setFocusedField("email")}
+                  onBlur={() => setFocusedField(null)}
                 />
               </View>
             </View>
@@ -130,8 +183,18 @@ export default function LoginScreen() {
             {/* Password Field */}
             <View style={styles.fieldGroup}>
               <Text style={styles.label}>Contraseña</Text>
-              <View style={styles.inputWrapper}>
-                <Text style={styles.inputIconText}>🔒</Text>
+              <View
+                style={[
+                  styles.inputWrapper,
+                  focusedField === "password" && styles.inputWrapperFocused,
+                ]}
+              >
+                <MaterialIcons
+                  name="lock-outline"
+                  size={20}
+                  color={COLORS.outline}
+                  style={styles.inputIcon}
+                />
                 <TextInput
                   style={[styles.input, styles.inputPassword]}
                   placeholder="••••••••"
@@ -140,29 +203,43 @@ export default function LoginScreen() {
                   onChangeText={setPassword}
                   secureTextEntry={!showPassword}
                   autoComplete="password"
+                  onFocus={() => setFocusedField("password")}
+                  onBlur={() => setFocusedField(null)}
                 />
                 <Pressable
                   onPress={() => setShowPassword((prev) => !prev)}
                   style={styles.eyeButton}
                   hitSlop={8}
                 >
-                  <Text style={{ fontSize: 16 }}>
-                    {showPassword ? "👁️" : "🙈"}
-                  </Text>
+                  <MaterialIcons
+                    name={showPassword ? "visibility" : "visibility-off"}
+                    size={20}
+                    color={COLORS.outline}
+                  />
                 </Pressable>
               </View>
             </View>
 
-            {/* Submit Button */}
+            {/* Submit Button — Gradient */}
             <Pressable
               onPress={handleLogin}
               style={({ pressed }) => [
-                styles.submitButton,
                 pressed && styles.submitButtonPressed,
               ]}
             >
-              <Text style={styles.submitText}>Iniciar Sesión</Text>
-              <Text style={styles.arrowIcon}>→</Text>
+              <LinearGradient
+                colors={[COLORS.primary, COLORS.primaryContainer]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.submitButton}
+              >
+                <Text style={styles.submitText}>Ingresar</Text>
+                <MaterialIcons
+                  name="arrow-forward"
+                  size={18}
+                  color={COLORS.onPrimary}
+                />
+              </LinearGradient>
             </Pressable>
           </View>
 
@@ -185,27 +262,31 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.surface,
   },
+  loadingContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
 
   /* Decorative blobs */
   blobTopRight: {
     position: "absolute",
     top: -SCREEN_WIDTH * 0.2,
-    right: -SCREEN_WIDTH * 0.2,
-    width: SCREEN_WIDTH * 0.8,
-    height: SCREEN_WIDTH * 0.8,
+    right: -SCREEN_WIDTH * 0.1,
+    width: SCREEN_WIDTH * 0.6,
+    height: SCREEN_WIDTH * 0.6,
     borderRadius: 9999,
     backgroundColor: COLORS.primaryFixed,
-    opacity: 0.3,
+    opacity: 0.2,
   },
   blobBottomLeft: {
     position: "absolute",
     bottom: -SCREEN_WIDTH * 0.2,
-    left: -SCREEN_WIDTH * 0.2,
-    width: SCREEN_WIDTH * 0.7,
-    height: SCREEN_WIDTH * 0.7,
+    left: -SCREEN_WIDTH * 0.1,
+    width: SCREEN_WIDTH * 0.5,
+    height: SCREEN_WIDTH * 0.5,
     borderRadius: 9999,
     backgroundColor: COLORS.secondaryFixed,
-    opacity: 0.3,
+    opacity: 0.2,
   },
 
   scrollContent: {
@@ -235,18 +316,16 @@ const styles = StyleSheet.create({
     shadowRadius: 32,
     elevation: 4,
   },
-  schoolIcon: {
-    fontSize: 30,
-  },
   brandTitle: {
     fontSize: 36,
-    fontWeight: "800",
+    fontFamily: "PlusJakartaSans_800ExtraBold",
     color: COLORS.primary,
     letterSpacing: -0.5,
-    marginBottom: 6,
+    marginBottom: 8,
   },
   brandSubtitle: {
     fontSize: 15,
+    fontFamily: "Manrope_400Regular",
     color: COLORS.onSurfaceVariant,
     textAlign: "center",
     maxWidth: 280,
@@ -265,37 +344,34 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.04,
     shadowRadius: 48,
     elevation: 3,
-    gap: 22,
+    gap: 24,
   },
 
   /* ─── Role Selector ─── */
   roleRow: {
     flexDirection: "row",
-    gap: 10,
+    gap: 12,
     marginBottom: 4,
   },
   roleItem: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 14,
+    paddingVertical: 12,
     paddingHorizontal: 8,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: `${COLORS.outlineVariant}33`,
     backgroundColor: COLORS.surface,
-    gap: 6,
+    gap: 4,
   },
   roleItemActive: {
     backgroundColor: `${COLORS.primary}0D`,
     borderColor: `${COLORS.primary}4D`,
   },
-  roleIcon: {
-    fontSize: 20,
-  },
   roleLabel: {
     fontSize: 12,
-    fontWeight: "600",
+    fontFamily: "Manrope_600SemiBold",
     color: COLORS.onSurfaceVariant,
   },
   roleLabelActive: {
@@ -304,13 +380,14 @@ const styles = StyleSheet.create({
 
   /* ─── Input Fields ─── */
   fieldGroup: {
-    gap: 6,
+    gap: 4,
   },
   label: {
-    fontSize: 13,
-    fontWeight: "600",
+    fontSize: 14,
+    fontFamily: "Manrope_600SemiBold",
     color: COLORS.onSurfaceVariant,
     marginLeft: 4,
+    marginBottom: 2,
   },
   inputWrapper: {
     flexDirection: "row",
@@ -325,8 +402,11 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 1,
   },
-  inputIconText: {
-    fontSize: 16,
+  inputWrapperFocused: {
+    borderColor: COLORS.primary,
+    borderWidth: 1.5,
+  },
+  inputIcon: {
     marginLeft: 16,
     width: 24,
     textAlign: "center",
@@ -334,6 +414,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 15,
+    fontFamily: "Manrope_400Regular",
     color: COLORS.onSurface,
     paddingVertical: 14,
     paddingHorizontal: 12,
@@ -349,7 +430,7 @@ const styles = StyleSheet.create({
 
   /* ─── Submit Button ─── */
   submitButton: {
-    marginTop: 6,
+    marginTop: 8,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -357,7 +438,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     borderRadius: 9999,
     gap: 8,
-    backgroundColor: COLORS.primary,
     shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.2,
@@ -365,28 +445,23 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   submitButtonPressed: {
-    opacity: 0.85,
+    opacity: 0.9,
     transform: [{ translateY: 1 }],
   },
   submitText: {
     fontSize: 16,
-    fontWeight: "700",
-    color: COLORS.onPrimary,
-  },
-  arrowIcon: {
-    fontSize: 18,
-    fontWeight: "700",
+    fontFamily: "Manrope_700Bold",
     color: COLORS.onPrimary,
   },
 
   /* ─── Forgot Password ─── */
   forgotContainer: {
-    marginTop: 28,
+    marginTop: 32,
     paddingVertical: 4,
   },
   forgotText: {
     fontSize: 14,
-    fontWeight: "600",
+    fontFamily: "Manrope_600SemiBold",
     color: COLORS.secondary,
   },
 });
