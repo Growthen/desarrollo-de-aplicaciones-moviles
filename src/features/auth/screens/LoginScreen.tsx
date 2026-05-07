@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
@@ -12,9 +11,15 @@ import {
   TextInput,
   View,
 } from "react-native";
+
+/* ─── Importacion de Custom Hooks y Hooks─── */
+import useAuth from "../hooks/useAuth";
+import { useState } from "react";
+import { useFonts } from "expo-font";
+
+/* ─── Importacion de font, iconos y materiales que se usaran para la screen ─── */
 import { LinearGradient } from "expo-linear-gradient";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { useFonts } from "expo-font";
 import {
   PlusJakartaSans_700Bold,
   PlusJakartaSans_800ExtraBold,
@@ -25,30 +30,15 @@ import {
   Manrope_700Bold,
 } from "@expo-google-fonts/manrope";
 
-import useAuth from "../hooks/useAuth";
 
-/* ─── Design System Colors ─── */
-const COLORS = {
-  primary: "#a73300",
-  primaryContainer: "#d24300",
-  secondary: "#5029e6",
-  surface: "#fef8f1",
-  surfaceContainerLowest: "#ffffff",
-  surfaceContainerLow: "#f9f3ec",
-  surfaceContainer: "#f3ede6",
-  onSurface: "#1d1b17",
-  onSurfaceVariant: "#5b4038",
-  outline: "#907066",
-  outlineVariant: "#e4beb2",
-  onPrimary: "#ffffff",
-  primaryFixed: "#ffdbd0",
-  secondaryFixed: "#e5deff",
-};
+/* ─── Importacion de Colores Globales ─── */
+import { COLORS } from "../../../shared/constants/colors";
 
 type Role = "padre" | "docente" | "admin";
 
 type MaterialIconName = React.ComponentProps<typeof MaterialIcons>["name"];
 
+/* ─── Roles existentes ─── */
 const ROLES: { key: Role; label: string; icon: MaterialIconName }[] = [
   { key: "padre", label: "Padre", icon: "family-restroom" },
   { key: "docente", label: "Docente", icon: "local-library" },
@@ -132,9 +122,7 @@ export default function LoginScreen() {
                       name={role.icon}
                       size={22}
                       color={
-                        isActive
-                          ? COLORS.primary
-                          : COLORS.onSurfaceVariant
+                        isActive ? COLORS.primary : COLORS.onSurfaceVariant
                       }
                     />
                     <Text
@@ -223,9 +211,7 @@ export default function LoginScreen() {
             {/* Submit Button — Gradient */}
             <Pressable
               onPress={handleLogin}
-              style={({ pressed }) => [
-                pressed && styles.submitButtonPressed,
-              ]}
+              style={({ pressed }) => [pressed && styles.submitButtonPressed]}
             >
               <LinearGradient
                 colors={[COLORS.primary, COLORS.primaryContainer]}
@@ -253,7 +239,7 @@ export default function LoginScreen() {
   );
 }
 
-/* ─── Styles ─── */
+/* ─── Estilos ─── */
 const styles = StyleSheet.create({
   flex: {
     flex: 1,

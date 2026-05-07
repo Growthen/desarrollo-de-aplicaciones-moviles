@@ -9,6 +9,7 @@ export default function HomeScreen() {
       style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
     >
       <Text>Hola, {user?.name || "usuario"}!</Text>
+      <Text>Bienvenido a la pantalla de inicio.</Text>
     </SafeAreaView>
   );
 }
