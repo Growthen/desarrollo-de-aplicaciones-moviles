@@ -1,4 +1,3 @@
-// Colores Globales que usaremos en toda la aplicacion, siguiendo el esquema del diseño
 export const COLORS = {
   // Primary
   primary: "#a73300",
@@ -38,7 +37,7 @@ export const COLORS = {
   surfaceVariant: "#e7e2db",
   onSurfaceVariant: "#5b4038",
   surfaceTint: "#ab3500",
-  
+
   // Surface Containers
   surfaceBright: "#fef8f1",
   surfaceDim: "#dfd9d2",
