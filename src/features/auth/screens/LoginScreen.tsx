@@ -1,5 +1,4 @@
 import {
-  ActivityIndicator,
   Dimensions,
   KeyboardAvoidingView,
   Platform,
@@ -7,32 +6,21 @@ import {
   ScrollView,
   StatusBar,
   StyleSheet,
-  Text,
   TextInput,
   View,
 } from "react-native";
 
 /* ─── Importacion de Custom Hooks y Hooks─── */
-import useAuth from "../hooks/useAuth";
+import { useAuth } from "@/features/auth";
 import { useState } from "react";
-import { useFonts } from "expo-font";
 
-/* ─── Importacion de font, iconos y materiales que se usaran para la screen ─── */
+/* ─── Importacion de iconos y materiales que se usaran para la screen ─── */
 import { LinearGradient } from "expo-linear-gradient";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import {
-  PlusJakartaSans_700Bold,
-  PlusJakartaSans_800ExtraBold,
-} from "@expo-google-fonts/plus-jakarta-sans";
-import {
-  Manrope_400Regular,
-  Manrope_600SemiBold,
-  Manrope_700Bold,
-} from "@expo-google-fonts/manrope";
-
 
 /* ─── Importacion de Colores Globales ─── */
-import { COLORS } from "../../../shared/constants/colors";
+import { COLORS } from "@/shared";
+import { ThemedText } from "@/shared";
 
 type Role = "padre" | "docente" | "admin";
 
@@ -50,14 +38,6 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 export default function LoginScreen() {
   const { login } = useAuth();
 
-  const [fontsLoaded] = useFonts({
-    PlusJakartaSans_700Bold,
-    PlusJakartaSans_800ExtraBold,
-    Manrope_400Regular,
-    Manrope_600SemiBold,
-    Manrope_700Bold,
-  });
-
   const [selectedRole, setSelectedRole] = useState<Role>("padre");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -67,15 +47,6 @@ export default function LoginScreen() {
   const handleLogin = () => {
     login();
   };
-
-  if (!fontsLoaded) {
-    return (
-      <View style={[styles.root, styles.loadingContainer]}>
-        <StatusBar barStyle="dark-content" backgroundColor={COLORS.surface} />
-        <ActivityIndicator size="large" color={COLORS.primary} />
-      </View>
-    );
-  }
 
   return (
     <View style={styles.root}>
@@ -100,10 +71,10 @@ export default function LoginScreen() {
               <MaterialIcons name="school" size={32} color={COLORS.primary} />
             </View>
 
-            <Text style={styles.brandTitle}>Trilce</Text>
-            <Text style={styles.brandSubtitle}>
+            <ThemedText type="brandTitle">Trilce</ThemedText>
+            <ThemedText type="brandSubtitle">
               Gestión Académica e Incidentes
-            </Text>
+            </ThemedText>
           </View>
 
           {/* ─── Login Card ─── */}
@@ -125,14 +96,12 @@ export default function LoginScreen() {
                         isActive ? COLORS.primary : COLORS.onSurfaceVariant
                       }
                     />
-                    <Text
-                      style={[
-                        styles.roleLabel,
-                        isActive && styles.roleLabelActive,
-                      ]}
+                    <ThemedText
+                      type="roleLabel"
+                      color={isActive ? "primary" : undefined}
                     >
                       {role.label}
-                    </Text>
+                    </ThemedText>
                   </Pressable>
                 );
               })}
@@ -140,7 +109,7 @@ export default function LoginScreen() {
 
             {/* Email Field */}
             <View style={styles.fieldGroup}>
-              <Text style={styles.label}>Correo Electrónico</Text>
+              <ThemedText type="label">Correo Electrónico</ThemedText>
               <View
                 style={[
                   styles.inputWrapper,
@@ -170,7 +139,7 @@ export default function LoginScreen() {
 
             {/* Password Field */}
             <View style={styles.fieldGroup}>
-              <Text style={styles.label}>Contraseña</Text>
+              <ThemedText type="label">Contraseña</ThemedText>
               <View
                 style={[
                   styles.inputWrapper,
@@ -219,7 +188,7 @@ export default function LoginScreen() {
                 end={{ x: 1, y: 1 }}
                 style={styles.submitButton}
               >
-                <Text style={styles.submitText}>Ingresar</Text>
+                <ThemedText type="button">Ingresar</ThemedText>
                 <MaterialIcons
                   name="arrow-forward"
                   size={18}
@@ -231,7 +200,7 @@ export default function LoginScreen() {
 
           {/* ─── Forgot Password Link ─── */}
           <Pressable style={styles.forgotContainer}>
-            <Text style={styles.forgotText}>¿Olvidaste tu contraseña?</Text>
+            <ThemedText type="link">¿Olvidaste tu contraseña?</ThemedText>
           </Pressable>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -247,10 +216,6 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: COLORS.surface,
-  },
-  loadingContainer: {
-    justifyContent: "center",
-    alignItems: "center",
   },
 
   /* Decorative blobs */
@@ -302,20 +267,6 @@ const styles = StyleSheet.create({
     shadowRadius: 32,
     elevation: 4,
   },
-  brandTitle: {
-    fontSize: 36,
-    fontFamily: "PlusJakartaSans_800ExtraBold",
-    color: COLORS.primary,
-    letterSpacing: -0.5,
-    marginBottom: 8,
-  },
-  brandSubtitle: {
-    fontSize: 15,
-    fontFamily: "Manrope_400Regular",
-    color: COLORS.onSurfaceVariant,
-    textAlign: "center",
-    maxWidth: 280,
-  },
 
   /* ─── Card ─── */
   card: {
@@ -355,25 +306,10 @@ const styles = StyleSheet.create({
     backgroundColor: `${COLORS.primary}0D`,
     borderColor: `${COLORS.primary}4D`,
   },
-  roleLabel: {
-    fontSize: 12,
-    fontFamily: "Manrope_600SemiBold",
-    color: COLORS.onSurfaceVariant,
-  },
-  roleLabelActive: {
-    color: COLORS.primary,
-  },
 
   /* ─── Input Fields ─── */
   fieldGroup: {
     gap: 4,
-  },
-  label: {
-    fontSize: 14,
-    fontFamily: "Manrope_600SemiBold",
-    color: COLORS.onSurfaceVariant,
-    marginLeft: 4,
-    marginBottom: 2,
   },
   inputWrapper: {
     flexDirection: "row",
@@ -434,20 +370,10 @@ const styles = StyleSheet.create({
     opacity: 0.9,
     transform: [{ translateY: 1 }],
   },
-  submitText: {
-    fontSize: 16,
-    fontFamily: "Manrope_700Bold",
-    color: COLORS.onPrimary,
-  },
 
   /* ─── Forgot Password ─── */
   forgotContainer: {
     marginTop: 32,
     paddingVertical: 4,
-  },
-  forgotText: {
-    fontSize: 14,
-    fontFamily: "Manrope_600SemiBold",
-    color: COLORS.secondary,
   },
 });
