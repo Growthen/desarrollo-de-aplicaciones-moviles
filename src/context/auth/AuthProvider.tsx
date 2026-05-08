@@ -1,6 +1,6 @@
 import { ReactNode, useState } from "react";
 
-import { AuthContext, User } from "./AuthContext";
+import { AuthContext, Role, User } from "./AuthContext";
 
 type Props = {
   children: ReactNode;
@@ -9,10 +9,12 @@ type Props = {
 export default function AuthProvider({ children }: Props) {
   const [user, setUser] = useState<User | null>(null);
 
-  const login = () => {
+  const login = (role: Role) => {
+    // TODO: Reemplazar con autenticación real (API call)
     setUser({
       id: "1",
       name: "Marcelo",
+      role,
     });
   };
 

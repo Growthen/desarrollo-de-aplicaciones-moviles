@@ -44,7 +44,7 @@ export default function LoginScreen() {
   const [focusedField, setFocusedField] = useState<string | null>(null);
 
   const handleLogin = () => {
-    login();
+    login(selectedRole);
   };
 
   return (
