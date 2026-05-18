@@ -2,7 +2,7 @@ import { NavigationContainer } from "@react-navigation/native";
 
 import AuthNavigator from "./AuthNavigator";
 import PadreNavigator from "./PadreNavigator";
-import AdminNavigator from "./AdminNavigator";
+import CoordinadorNavigator from "./CoordinadorNavigator";
 import ProfesorNavigator from "./ProfesorNavigator";
 
 import useAuth from "@/features/auth/hooks/useAuth";
@@ -10,17 +10,13 @@ import { StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { COLORS } from "@/shared/constants/colors";
 
-/**
- * Retorna el navigator correspondiente según el rol del usuario.
- * TODO: Cuando se implemente auth real, el rol vendrá del backend.
- */
 function RoleNavigator({ role }: { role: string }) {
   switch (role) {
-    case "padre":
+    case "PADRE":
       return <PadreNavigator />;
-    case "admin":
-      return <AdminNavigator />;
-    case "docente":
+    case "COORDINADOR":
+      return <CoordinadorNavigator />;
+    case "PROFESOR":
       return <ProfesorNavigator />;
     default:
       return <AuthNavigator />;
@@ -44,4 +40,3 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
   },
 });
-
