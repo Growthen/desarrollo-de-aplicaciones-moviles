@@ -1,6 +1,8 @@
 import { ReactNode, useState } from "react";
-
-import { AuthContext, Role, User } from "./AuthContext";
+import { AuthContext, User } from "./AuthContext";
+import { loginService } from "@/features/auth/services/auth.service";
+import { saveToken, deleteToken } from "@/features/auth/services/token.service";
+import type { AuthRole } from "@/features/auth/types/auth.types";
 
 type Props = {
   children: ReactNode;
@@ -8,18 +10,39 @@ type Props = {
 
 export default function AuthProvider({ children }: Props) {
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const login = (role: Role) => {
-    // TODO: Reemplazar con autenticación real (API call)
-    setUser({
-      id: "1",
-      name: "Marcelo",
-      role,
-    });
+  const login = async (username: string, password: string) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await loginService({ username, password });
+      const { accessToken, userId, username: userUsername, email, role } = response.data;
+      await saveToken(accessToken);
+      setUser({
+        id: userId,
+        username: userUsername,
+        email,
+        role: role as AuthRole,
+        accessToken,
+      });
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message || "Credenciales invalidas");
+      } else {
+        setError("Credenciales invalidas");
+      }
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    await deleteToken();
     setUser(null);
+    setError(null);
   };
 
   return (
@@ -28,6 +51,8 @@ export default function AuthProvider({ children }: Props) {
         user,
         login,
         logout,
+        isLoading,
+        error,
       }}
     >
       {children}
