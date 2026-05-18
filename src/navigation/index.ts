@@ -4,4 +4,3 @@ export { default as AuthNavigator } from "./AuthNavigator";
 export { default as PadreNavigator } from "./PadreNavigator";
 export { default as AdminNavigator } from "./AdminNavigator";
 export { default as ProfesorNavigator } from "./ProfesorNavigator";
-

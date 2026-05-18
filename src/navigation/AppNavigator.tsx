@@ -44,4 +44,3 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
   },
 });
-
