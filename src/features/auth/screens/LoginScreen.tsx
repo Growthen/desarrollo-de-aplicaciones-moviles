@@ -8,50 +8,49 @@ import {
   StyleSheet,
   TextInput,
   View,
+  Alert,
 } from "react-native";
 
-/* ─── Importacion de Custom Hooks y Hooks─── */
 import useAuth from "@/features/auth/hooks/useAuth";
 import { useState } from "react";
 
-/* ─── Importacion de iconos y materiales que se usaran para la screen ─── */
 import { LinearGradient } from "expo-linear-gradient";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
-/* ─── Importacion de Colores Globales ─── */
 import { COLORS, ThemedText } from "@/shared";
 
-type Role = "padre" | "docente" | "admin";
-
 type MaterialIconName = React.ComponentProps<typeof MaterialIcons>["name"];
-
-/* ─── Roles existentes ─── */
-const ROLES: { key: Role; label: string; icon: MaterialIconName }[] = [
-  { key: "padre", label: "Padre", icon: "family-restroom" },
-  { key: "docente", label: "Docente", icon: "local-library" },
-  { key: "admin", label: "Admin", icon: "admin-panel-settings" },
-];
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export default function LoginScreen() {
-  const { login } = useAuth();
+  const { login, isLoading, error } = useAuth();
 
-  const [selectedRole, setSelectedRole] = useState<Role>("padre");
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
 
-  const handleLogin = () => {
-    login(selectedRole);
+  const handleLogin = async () => {
+    if (!username.trim() || !password.trim()) {
+      Alert.alert("Error", "Por favor completa todos los campos");
+      return;
+    }
+    if (password.length < 8) {
+      Alert.alert("Error", "La contraseña debe tener al menos 8 caracteres");
+      return;
+    }
+    try {
+      await login(username.trim(), password);
+    } catch {
+      Alert.alert("Error", error || "Credenciales invalidas");
+    }
   };
 
   return (
     <View style={styles.root}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.surface} />
 
-      {/* ─── Decorative Background Blobs ─── */}
       <View style={styles.blobTopRight} />
       <View style={styles.blobBottomLeft} />
 
@@ -64,7 +63,6 @@ export default function LoginScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* ─── Brand / Header ─── */}
           <View style={styles.brandContainer}>
             <View style={styles.iconBox}>
               <MaterialIcons name="school" size={32} color={COLORS.primary} />
@@ -72,71 +70,39 @@ export default function LoginScreen() {
 
             <ThemedText type="brandTitle">Trilce</ThemedText>
             <ThemedText type="brandSubtitle">
-              Gestión Académica e Incidentes
+              Gestion Academica e Incidentes
             </ThemedText>
           </View>
 
-          {/* ─── Login Card ─── */}
           <View style={styles.card}>
-            {/* Role Selector */}
-            <View style={styles.roleRow}>
-              {ROLES.map((role) => {
-                const isActive = selectedRole === role.key;
-                return (
-                  <Pressable
-                    key={role.key}
-                    style={[styles.roleItem, isActive && styles.roleItemActive]}
-                    onPress={() => setSelectedRole(role.key)}
-                  >
-                    <MaterialIcons
-                      name={role.icon}
-                      size={22}
-                      color={
-                        isActive ? COLORS.primary : COLORS.onSurfaceVariant
-                      }
-                    />
-                    <ThemedText
-                      type="roleLabel"
-                      color={isActive ? "primary" : undefined}
-                    >
-                      {role.label}
-                    </ThemedText>
-                  </Pressable>
-                );
-              })}
-            </View>
-
-            {/* Email Field */}
             <View style={styles.fieldGroup}>
-              <ThemedText type="label">Correo Electrónico</ThemedText>
+              <ThemedText type="label">Codigo Personal</ThemedText>
               <View
                 style={[
                   styles.inputWrapper,
-                  focusedField === "email" && styles.inputWrapperFocused,
+                  focusedField === "username" && styles.inputWrapperFocused,
                 ]}
               >
                 <MaterialIcons
-                  name="mail-outline"
+                  name="done-outline"
                   size={20}
                   color={COLORS.outline}
                   style={styles.inputIcon}
                 />
                 <TextInput
                   style={styles.input}
-                  placeholder="tu@correo.com"
+                  placeholder="C001234567"
                   placeholderTextColor={COLORS.outline}
-                  value={email}
-                  onChangeText={setEmail}
-                  keyboardType="email-address"
+                  value={username}
+                  onChangeText={setUsername}
                   autoCapitalize="none"
-                  autoComplete="email"
-                  onFocus={() => setFocusedField("email")}
+                  autoComplete="off"
+                  onFocus={() => setFocusedField("username")}
                   onBlur={() => setFocusedField(null)}
                 />
               </View>
             </View>
 
-            {/* Password Field */}
             <View style={styles.fieldGroup}>
               <ThemedText type="label">Contraseña</ThemedText>
               <View
@@ -176,10 +142,13 @@ export default function LoginScreen() {
               </View>
             </View>
 
-            {/* Submit Button — Gradient */}
             <Pressable
               onPress={handleLogin}
-              style={({ pressed }) => [pressed && styles.submitButtonPressed]}
+              disabled={isLoading}
+              style={({ pressed }) => [
+                pressed && !isLoading && styles.submitButtonPressed,
+                isLoading && styles.submitButtonDisabled,
+              ]}
             >
               <LinearGradient
                 colors={[COLORS.primary, COLORS.primaryContainer]}
@@ -187,17 +156,22 @@ export default function LoginScreen() {
                 end={{ x: 1, y: 1 }}
                 style={styles.submitButton}
               >
-                <ThemedText type="button">Ingresar</ThemedText>
-                <MaterialIcons
-                  name="arrow-forward"
-                  size={18}
-                  color={COLORS.onPrimary}
-                />
+                {isLoading ? (
+                  <ThemedText type="button">Ingresando...</ThemedText>
+                ) : (
+                  <>
+                    <ThemedText type="button">Ingresar</ThemedText>
+                    <MaterialIcons
+                      name="arrow-forward"
+                      size={18}
+                      color={COLORS.onPrimary}
+                    />
+                  </>
+                )}
               </LinearGradient>
             </Pressable>
           </View>
 
-          {/* ─── Forgot Password Link ─── */}
           <Pressable style={styles.forgotContainer}>
             <ThemedText type="link">¿Olvidaste tu contraseña?</ThemedText>
           </Pressable>
@@ -207,7 +181,6 @@ export default function LoginScreen() {
   );
 }
 
-/* ─── Estilos ─── */
 const styles = StyleSheet.create({
   flex: {
     flex: 1,
@@ -217,7 +190,6 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
   },
 
-  /* Decorative blobs */
   blobTopRight: {
     position: "absolute",
     top: -SCREEN_WIDTH * 0.2,
@@ -248,7 +220,6 @@ const styles = StyleSheet.create({
     paddingBottom: 48,
   },
 
-  /* ─── Brand ─── */
   brandContainer: {
     alignItems: "center",
     marginBottom: 40,
@@ -268,7 +239,6 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
 
-  /* ─── Card ─── */
   card: {
     width: "100%",
     maxWidth: 400,
@@ -284,30 +254,6 @@ const styles = StyleSheet.create({
     gap: 24,
   },
 
-  /* ─── Role Selector ─── */
-  roleRow: {
-    flexDirection: "row",
-    gap: 12,
-    marginBottom: 4,
-  },
-  roleItem: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 8,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: `${COLORS.outlineVariant}33`,
-    backgroundColor: COLORS.surface,
-    gap: 4,
-  },
-  roleItemActive: {
-    backgroundColor: `${COLORS.primary}0D`,
-    borderColor: `${COLORS.primary}4D`,
-  },
-
-  /* ─── Input Fields ─── */
   fieldGroup: {
     gap: 4,
   },
@@ -350,7 +296,6 @@ const styles = StyleSheet.create({
     padding: 4,
   },
 
-  /* ─── Submit Button ─── */
   submitButton: {
     marginTop: 8,
     flexDirection: "row",
@@ -370,8 +315,10 @@ const styles = StyleSheet.create({
     opacity: 0.9,
     transform: [{ translateY: 1 }],
   },
+  submitButtonDisabled: {
+    opacity: 0.6,
+  },
 
-  /* ─── Forgot Password ─── */
   forgotContainer: {
     marginTop: 32,
     paddingVertical: 4,
