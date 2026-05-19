@@ -24,12 +24,16 @@ type MaterialIconName = React.ComponentProps<typeof MaterialIcons>["name"];
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export default function LoginScreen() {
-  const { login, isLoading, error } = useAuth();
+  const { login, Register, isLoading, error } = useAuth();
 
   const [username, setUsername] = useState("");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [dni, setDni] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [isLoginView, setIsLoginView] = useState(true);
 
   const handleLogin = async () => {
     if (!username.trim() || !password.trim()) {
@@ -44,6 +48,22 @@ export default function LoginScreen() {
       await login(username.trim(), password);
     } catch {
       Alert.alert("Error", error || "Credenciales invalidas");
+    }
+  };
+  
+  const handleRegister = async () => {
+    if (!name.trim() || !email.trim() || !dni.trim() || !password.trim()) {
+      Alert.alert("Error", "Por favor completa todos los campos");
+      return;
+    }
+    if (password.length < 8) {
+      Alert.alert("Error", "La contraseña debe tener al menos 8 caracteres");
+      return;
+    }
+    try {
+      await Register(name.trim(), email.trim(), dni.trim(), password);
+    } catch {
+      Alert.alert("Error", error || "No se pudo registrar el usuario");
     }
   };
 
@@ -74,34 +94,142 @@ export default function LoginScreen() {
             </ThemedText>
           </View>
 
+          <View style={styles.tabContainer}>
+            <Pressable
+              style={[styles.tabButton, isLoginView && styles.tabButtonActive]}
+              onPress={() => setIsLoginView(true)}
+            >
+              <ThemedText type={isLoginView ? "button" : "label"} style={isLoginView ? { color: COLORS.primary } : {}}>
+                Ingresar
+              </ThemedText>
+            </Pressable>
+            <Pressable
+              style={[styles.tabButton, !isLoginView && styles.tabButtonActive]}
+              onPress={() => setIsLoginView(false)}
+            >
+              <ThemedText type={!isLoginView ? "button" : "label"} style={!isLoginView ? { color: COLORS.primary } : {}}>
+                Registrarse
+              </ThemedText>
+            </Pressable>
+          </View>
+
           <View style={styles.card}>
-            <View style={styles.fieldGroup}>
-              <ThemedText type="label">Codigo Personal</ThemedText>
-              <View
-                style={[
-                  styles.inputWrapper,
-                  focusedField === "username" && styles.inputWrapperFocused,
-                ]}
-              >
-                <MaterialIcons
-                  name="done-outline"
-                  size={20}
-                  color={COLORS.outline}
-                  style={styles.inputIcon}
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="C001234567"
-                  placeholderTextColor={COLORS.outline}
-                  value={username}
-                  onChangeText={setUsername}
-                  autoCapitalize="none"
-                  autoComplete="off"
-                  onFocus={() => setFocusedField("username")}
-                  onBlur={() => setFocusedField(null)}
-                />
-              </View>
-            </View>
+            {isLoginView ? (
+              <>
+                <View style={styles.fieldGroup}>
+                  <ThemedText type="label">Codigo Personal</ThemedText>
+                  <View
+                    style={[
+                      styles.inputWrapper,
+                      focusedField === "username" && styles.inputWrapperFocused,
+                    ]}
+                  >
+                    <MaterialIcons
+                      name="person-outline"
+                      size={20}
+                      color={COLORS.outline}
+                      style={styles.inputIcon}
+                    />
+                    <TextInput
+                      style={styles.input}
+                      placeholder="C001234567"
+                      placeholderTextColor={COLORS.outline}
+                      value={username}
+                      onChangeText={setUsername}
+                      autoCapitalize="none"
+                      autoComplete="off"
+                      onFocus={() => setFocusedField("username")}
+                      onBlur={() => setFocusedField(null)}
+                    />
+                  </View>
+                </View>
+              </>
+            ) : (
+              <>
+                <View style={styles.fieldGroup}>
+                  <ThemedText type="label">Nombre completo</ThemedText>
+                  <View
+                    style={[
+                      styles.inputWrapper,
+                      focusedField === "name" && styles.inputWrapperFocused,
+                    ]}
+                  >
+                    <MaterialIcons
+                      name="badge"
+                      size={20}
+                      color={COLORS.outline}
+                      style={styles.inputIcon}
+                    />
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Juan Perez"
+                      placeholderTextColor={COLORS.outline}
+                      value={name}
+                      onChangeText={setName}
+                      autoCapitalize="words"
+                      onFocus={() => setFocusedField("name")}
+                      onBlur={() => setFocusedField(null)}
+                    />
+                  </View>
+                </View>
+
+                <View style={styles.fieldGroup}>
+                  <ThemedText type="label">Correo electrónico</ThemedText>
+                  <View
+                    style={[
+                      styles.inputWrapper,
+                      focusedField === "email" && styles.inputWrapperFocused,
+                    ]}
+                  >
+                    <MaterialIcons
+                      name="email"
+                      size={20}
+                      color={COLORS.outline}
+                      style={styles.inputIcon}
+                    />
+                    <TextInput
+                      style={styles.input}
+                      placeholder="juan@ejemplo.com"
+                      placeholderTextColor={COLORS.outline}
+                      value={email}
+                      onChangeText={setEmail}
+                      autoCapitalize="none"
+                      keyboardType="email-address"
+                      onFocus={() => setFocusedField("email")}
+                      onBlur={() => setFocusedField(null)}
+                    />
+                  </View>
+                </View>
+
+                <View style={styles.fieldGroup}>
+                  <ThemedText type="label">DNI</ThemedText>
+                  <View
+                    style={[
+                      styles.inputWrapper,
+                      focusedField === "dni" && styles.inputWrapperFocused,
+                    ]}
+                  >
+                    <MaterialIcons
+                      name="credit-card"
+                      size={20}
+                      color={COLORS.outline}
+                      style={styles.inputIcon}
+                    />
+                    <TextInput
+                      style={styles.input}
+                      placeholder="12345678"
+                      placeholderTextColor={COLORS.outline}
+                      value={dni}
+                      onChangeText={setDni}
+                      keyboardType="numeric"
+                      maxLength={8}
+                      onFocus={() => setFocusedField("dni")}
+                      onBlur={() => setFocusedField(null)}
+                    />
+                  </View>
+                </View>
+              </>
+            )}
 
             <View style={styles.fieldGroup}>
               <ThemedText type="label">Contraseña</ThemedText>
@@ -143,7 +271,7 @@ export default function LoginScreen() {
             </View>
 
             <Pressable
-              onPress={handleLogin}
+              onPress={isLoginView ? handleLogin : handleRegister}
               disabled={isLoading}
               style={({ pressed }) => [
                 pressed && !isLoading && styles.submitButtonPressed,
@@ -157,12 +285,12 @@ export default function LoginScreen() {
                 style={styles.submitButton}
               >
                 {isLoading ? (
-                  <ThemedText type="button">Ingresando...</ThemedText>
+                  <ThemedText type="button">{isLoginView ? "Ingresando..." : "Registrando..."}</ThemedText>
                 ) : (
                   <>
-                    <ThemedText type="button">Ingresar</ThemedText>
+                    <ThemedText type="button">{isLoginView ? "Ingresar" : "Registrarse"}</ThemedText>
                     <MaterialIcons
-                      name="arrow-forward"
+                      name={isLoginView ? "arrow-forward" : "person-add"}
                       size={18}
                       color={COLORS.onPrimary}
                     />
@@ -172,9 +300,11 @@ export default function LoginScreen() {
             </Pressable>
           </View>
 
-          <Pressable style={styles.forgotContainer}>
-            <ThemedText type="link">¿Olvidaste tu contraseña?</ThemedText>
-          </Pressable>
+          {isLoginView && (
+            <Pressable style={styles.forgotContainer}>
+              <ThemedText type="link">¿Olvidaste tu contraseña?</ThemedText>
+            </Pressable>
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
@@ -237,6 +367,36 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 32,
     elevation: 4,
+  },
+
+  tabContainer: {
+    flexDirection: "row",
+    marginBottom: 24,
+    backgroundColor: COLORS.surfaceContainerLowest,
+    borderRadius: 12,
+    padding: 4,
+    width: "100%",
+    maxWidth: 400,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  tabButton: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: "center",
+    borderRadius: 8,
+  },
+  tabButtonActive: {
+    backgroundColor: COLORS.surfaceContainer,
   },
 
   card: {

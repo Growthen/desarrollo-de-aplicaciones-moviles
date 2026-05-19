@@ -1,6 +1,6 @@
 import { ReactNode, useState } from "react";
 import { AuthContext, User } from "./AuthContext";
-import { loginService } from "@/features/auth/services/auth.service";
+import { loginService, RegisterService } from "@/features/auth/services/auth.service";
 import { saveToken, deleteToken } from "@/features/auth/services/token.service";
 import type { AuthRole } from "@/features/auth/types/auth.types";
 
@@ -38,6 +38,31 @@ export default function AuthProvider({ children }: Props) {
       setIsLoading(false);
     }
   };
+  const Register = async (name: string, email: string, dni: string, password: string) => {
+    setIsLoading(true);
+    setError(null);
+    try{
+      const response = await RegisterService({ name, email, dni, password });
+      const { accessToken, userId, username: userUsername, email: userEmail, role} = response.data;
+      await saveToken(accessToken);
+      setUser({
+        id: userId,
+        username: userUsername,
+        email: userEmail,
+        role: role as AuthRole,
+        accessToken,
+      });
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message || "No se pudo registrar el usuario");
+      } else {
+        setError("No se pudo registrar el usuario");
+      }
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   const logout = async () => {
     await deleteToken();
@@ -50,6 +75,7 @@ export default function AuthProvider({ children }: Props) {
       value={{
         user,
         login,
+        Register,
         logout,
         isLoading,
         error,

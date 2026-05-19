@@ -12,6 +12,7 @@ export type User = {
 export type AuthContextType = {
   user: User | null;
   login: (username: string, password: string) => Promise<void>;
+  Register: (name: string, email: string, dni: string, password: string) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
   error: string | null;
