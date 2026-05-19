@@ -1,7 +1,7 @@
 import { Pressable, Text, View } from "react-native";
 import { useAuth } from "@/features/auth";
 
-export default function PadreScreen() {
+export default function AdminScreen() {
   const { user, logout } = useAuth();
   return (
     <View
@@ -13,7 +13,7 @@ export default function PadreScreen() {
       }}
     >
       <Text style={{ fontSize: 20, fontWeight: "bold" }}>
-        👨‍👩‍👧 Pantalla del Padre
+        ⚙️ Pantalla del Admin
       </Text>
       <Text>Hola, {user?.name || "usuario"}!</Text>
       <Text style={{ color: "#888" }}>Rol: {user?.role}</Text>
