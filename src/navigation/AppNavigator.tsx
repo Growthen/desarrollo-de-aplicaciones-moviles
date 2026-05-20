@@ -1,9 +1,9 @@
 import { NavigationContainer } from "@react-navigation/native";
 
 import AuthNavigator from "./AuthNavigator";
-import PadreNavigator from "./PadreNavigator";
-import CoordinadorNavigator from "./CoordinadorNavigator";
-import ProfesorNavigator from "./ProfesorNavigator";
+import PadreNavigator from "./roles/PadreNavigator";
+import CoordinadorNavigator from "./roles/CoordinadorNavigator";
+import ProfesorNavigator from "./roles/ProfesorNavigator";
 
 import useAuth from "@/features/auth/hooks/useAuth";
 import { StyleSheet } from "react-native";
