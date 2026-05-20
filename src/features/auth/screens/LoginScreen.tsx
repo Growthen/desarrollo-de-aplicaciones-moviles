@@ -50,7 +50,7 @@ export default function LoginScreen() {
       Alert.alert("Error", error || "Credenciales invalidas");
     }
   };
-  
+
   const handleRegister = async () => {
     if (!name.trim() || !email.trim() || !dni.trim() || !password.trim()) {
       Alert.alert("Error", "Por favor completa todos los campos");
@@ -99,7 +99,10 @@ export default function LoginScreen() {
               style={[styles.tabButton, isLoginView && styles.tabButtonActive]}
               onPress={() => setIsLoginView(true)}
             >
-              <ThemedText type={isLoginView ? "button" : "label"} style={isLoginView ? { color: COLORS.primary } : {}}>
+              <ThemedText
+                type={isLoginView ? "button" : "label"}
+                style={isLoginView ? { color: COLORS.primary } : {}}
+              >
                 Ingresar
               </ThemedText>
             </Pressable>
@@ -107,7 +110,10 @@ export default function LoginScreen() {
               style={[styles.tabButton, !isLoginView && styles.tabButtonActive]}
               onPress={() => setIsLoginView(false)}
             >
-              <ThemedText type={!isLoginView ? "button" : "label"} style={!isLoginView ? { color: COLORS.primary } : {}}>
+              <ThemedText
+                type={!isLoginView ? "button" : "label"}
+                style={!isLoginView ? { color: COLORS.primary } : {}}
+              >
                 Registrarse
               </ThemedText>
             </Pressable>
@@ -285,10 +291,14 @@ export default function LoginScreen() {
                 style={styles.submitButton}
               >
                 {isLoading ? (
-                  <ThemedText type="button">{isLoginView ? "Ingresando..." : "Registrando..."}</ThemedText>
+                  <ThemedText type="button">
+                    {isLoginView ? "Ingresando..." : "Registrando..."}
+                  </ThemedText>
                 ) : (
                   <>
-                    <ThemedText type="button">{isLoginView ? "Ingresar" : "Registrarse"}</ThemedText>
+                    <ThemedText type="button">
+                      {isLoginView ? "Ingresar" : "Registrarse"}
+                    </ThemedText>
                     <MaterialIcons
                       name={isLoginView ? "arrow-forward" : "person-add"}
                       size={18}

@@ -24,7 +24,12 @@ function RoleNavigator({ role }: { role: string }) {
 }
 
 export default function AppNavigator() {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return null;
+  }
+
   return (
     <NavigationContainer>
       <SafeAreaView style={styles.root} edges={["top", "bottom"]}>
