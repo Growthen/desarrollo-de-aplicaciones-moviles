@@ -27,7 +27,7 @@ export default function AppNavigator() {
   const { user } = useAuth();
   return (
     <NavigationContainer>
-      <SafeAreaView style={styles.root} edges={["top", "bottom"]}>
+      <SafeAreaView style={styles.root} edges={["top"]}>
         {user ? <RoleNavigator role={user.role} /> : <AuthNavigator />}
       </SafeAreaView>
     </NavigationContainer>
