@@ -3,14 +3,14 @@ export type LoginRequest = {
   password: string;
 };
 
-export type RegisterRequest ={
+export type RegisterRequest = {
   name: string;
   email: string;
   dni: string;
   password: string;
-}
+};
 
-export type AuthRole = "COORDINADOR" | "PROFESOR" | "PADRE" | "ADMIN";
+export type AuthRole = "COORDINADOR" | "PROFESOR" | "PADRE";
 
 export type AuthResponseData = {
   accessToken: string;
