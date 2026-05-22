@@ -12,14 +12,29 @@ import ActionRow from "@/shared/components/ActionRow";
 import useAuth from "@/features/auth/hooks/useAuth";
 import type { AuthRole } from "@/features/auth/types/auth.types";
 
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import PasswordRestoreScreen from "@/features/auth/screens/PasswordRestoreScreen";
+import EmailRestoreScreen from "@/features/auth/screens/EmailRestoreScreen";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+
 const ROLE_LABELS: Record<AuthRole, string> = {
   COORDINADOR: "Coordinador",
   PROFESOR: "Profesor",
   PADRE: "Padre de Familia",
 };
 
-export default function ConfigurationNavigator() {
+export type ConfigurationStackParamList = {
+  ConfigurationHome: undefined;
+  PasswordRestore: undefined;
+  EmailRestore: undefined;
+};
+
+const Stack = createNativeStackNavigator<ConfigurationStackParamList>();
+
+function ConfigurationScreen() {
   const { user, logout } = useAuth();
+  const navigation = useNavigation<NativeStackNavigationProp<ConfigurationStackParamList>>();
 
   return (
     <View style={styles.root}>
@@ -111,6 +126,7 @@ export default function ConfigurationNavigator() {
             accentColor={COLORS.primary}
             title="Actualizar Contraseña"
             subtitle="Protege tu cuenta con una credencial segura"
+            onPress={() => navigation.navigate("PasswordRestore")}
           />
 
           <ActionRow
@@ -120,6 +136,7 @@ export default function ConfigurationNavigator() {
             accentColor={COLORS.secondary}
             title="Actualizar Correo"
             subtitle="Mantén un medio de recuperación secundario"
+            onPress={() => navigation.navigate("EmailRestore")}
           />
 
           <ActionRow
@@ -156,6 +173,21 @@ export default function ConfigurationNavigator() {
         </View>
       </ScrollView>
     </View>
+  );
+}
+
+export default function ConfigurationNavigator() {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        animation: "slide_from_right", // transition from right to left
+      }}
+    >
+      <Stack.Screen name="ConfigurationHome" component={ConfigurationScreen} />
+      <Stack.Screen name="PasswordRestore" component={PasswordRestoreScreen} />
+      <Stack.Screen name="EmailRestore" component={EmailRestoreScreen} />
+    </Stack.Navigator>
   );
 }
 
