@@ -19,6 +19,7 @@ export type AuthContextType = {
     password: string,
   ) => Promise<void>;
   logout: () => void;
+  devLogin?: (role: AuthRole) => Promise<void>;
   isLoading: boolean;
   error: string | null;
 };
