@@ -18,6 +18,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 import { COLORS, ThemedText } from "@/shared";
+import DevBypassButtons from "@/features/auth/components/DevBypassButtons";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -313,6 +314,8 @@ export default function LoginScreen() {
               <ThemedText type="link">¿Olvidaste tu contraseña?</ThemedText>
             </Pressable>
           )}
+
+          <DevBypassButtons />
         </ScrollView>
       </KeyboardAvoidingView>
     </View>

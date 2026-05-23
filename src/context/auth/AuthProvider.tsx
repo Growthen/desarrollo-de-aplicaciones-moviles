@@ -111,6 +111,28 @@ export default function AuthProvider({ children }: Props) {
     setError(null);
   };
 
+  const devLogin = async (role: AuthRole) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const mockToken = `mock_dev_token_${role.toLowerCase()}`;
+      await saveToken(mockToken);
+      const mockUser: User = {
+        id: 9999,
+        username: `dev_${role.toLowerCase()}`,
+        email: `dev_${role.toLowerCase()}@trilce.edu.pe`,
+        role,
+        accessToken: mockToken,
+      };
+      await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(mockUser));
+      setUser(mockUser);
+    } catch (err: unknown) {
+      console.error("Error setting dev login:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -118,6 +140,7 @@ export default function AuthProvider({ children }: Props) {
         login,
         Register,
         logout,
+        devLogin,
         isLoading,
         error,
       }}
