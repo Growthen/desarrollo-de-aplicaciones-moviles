@@ -1,6 +1,7 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
 import { PadreScreen } from "@/features/padre";
+import { PadreHijosScreen } from "@/features/padre";
 import ConfigurationNavigator from "../components/ConfigurationNavigator";
 import { MaterialIcons } from "@expo/vector-icons";
 
@@ -16,7 +17,7 @@ export default function PadreNavigator() {
             <MaterialIcons name="calendar-month" size={size} color={color} />
           ),
         }} />
-      <Tab.Screen name="PadreHijos" component={PadreScreen}
+      <Tab.Screen name="PadreHijos" component={PadreHijosScreen}
         options={{
           title: "Hijos",
           tabBarIcon: ({ color, size }) => (
