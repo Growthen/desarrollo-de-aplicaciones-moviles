@@ -1,6 +1,7 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
 import ProfesorStack from "@/features/profesor/navigation/ProfesorStack";
+import ProfesorCoursesStack from "@/features/profesor/navigation/ProfesorCoursesStack";
 import ConfigurationNavigator from "../components/ConfigurationNavigator";
 import { MaterialIcons } from "@expo/vector-icons";
 
@@ -21,7 +22,7 @@ export default function ProfesorNavigator() {
       />
       <Tab.Screen
         name="ProfesorClases"
-        component={ProfesorStack}
+        component={ProfesorCoursesStack}
         options={{
           title: "Clases",
           tabBarIcon: ({ color, size }) => (

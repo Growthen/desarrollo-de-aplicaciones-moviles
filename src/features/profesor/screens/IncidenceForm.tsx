@@ -13,7 +13,7 @@ import {
   TouchableOpacity,
   Text,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 
 import ThemedText from "@/shared/components/ThemedText";
 import { COLORS } from "@/shared/constants/colors";
@@ -21,12 +21,17 @@ import { useAuth } from "@/features/auth";
 
 export default function IncidenceForm() {
   const navigation = useNavigation();
+  const route = useRoute<any>();
   const { user } = useAuth();
 
+  const selectedCourse = route.params?.course;
+  const selectedStudent = route.params?.student;
+
   const [title, setTitle] = useState("");
-  const [student, setStudent] = useState("");
+  const [student, setStudent] = useState<any>(selectedStudent ?? null);
+
   const [description, setDescription] = useState("");
-  const [course, setCourse] = useState<string | null>(null);
+  const [course, setCourse] = useState<any>(selectedCourse ?? null);
 
   const [courseModalVisible, setCourseModalVisible] = useState(false);
   const [studentModalVisible, setStudentModalVisible] = useState(false);
@@ -56,7 +61,7 @@ export default function IncidenceForm() {
 
   const availableStudents = useMemo(() => {
     if (!course) return [];
-    return mockStudentsByCourse[course] ?? [];
+    return mockStudentsByCourse[course.id] ?? [];
   }, [course]);
 
   const filteredStudents = useMemo(() => {
@@ -78,11 +83,17 @@ export default function IncidenceForm() {
 
     const incidence = {
       title,
-      student,
-      course,
       description,
+
+      studentId: student.id,
+      studentName: student.name,
+
+      courseId: course.id,
+      courseName: course.title,
+
       createdBy: user?.username ?? "",
       createdAt: new Date().toISOString(),
+
       status: "PENDIENTE",
     };
 
@@ -106,17 +117,20 @@ export default function IncidenceForm() {
           Curso
         </ThemedText>
         <Pressable
+          disabled={!!selectedCourse}
           onPress={() => setCourseModalVisible(true)}
-          style={[styles.input, { justifyContent: "center" }]}
+          style={[
+            styles.input,
+            { justifyContent: "center" },
+            selectedCourse && { opacity: 0.7 },
+          ]}
         >
           <Text
             style={{
               color: course ? COLORS.onSurface : COLORS.onSurfaceVariant,
             }}
           >
-            {course
-              ? mockCourses.find((c) => c.id === course)?.title
-              : "Selecciona un curso"}
+            {course ? course.title : "Selecciona un curso"}
           </Text>
         </Pressable>
 
@@ -130,9 +144,9 @@ export default function IncidenceForm() {
                 renderItem={({ item }) => (
                   <TouchableOpacity
                     onPress={() => {
-                      setCourse(item.id);
+                      setCourse(item);
                       setCourseModalVisible(false);
-                      setStudent("");
+                      setStudent(null);
                       setStudentQuery("");
                     }}
                     style={styles.modalItem}
@@ -142,7 +156,9 @@ export default function IncidenceForm() {
                 )}
               />
               <Pressable
-                onPress={() => setCourseModalVisible(false)}
+                onPress={() => {
+                  if (course) setStudentModalVisible(true);
+                }}
                 style={styles.modalClose}
               >
                 <ThemedText type="link">Cancelar</ThemedText>
@@ -155,6 +171,7 @@ export default function IncidenceForm() {
           Alumno (Nombre o DNI)
         </ThemedText>
         <Pressable
+          disabled={!!selectedStudent}
           onPress={() => {
             if (course) setStudentModalVisible(true);
           }}
@@ -162,6 +179,7 @@ export default function IncidenceForm() {
             styles.input,
             { justifyContent: "center" },
             !course && { opacity: 0.5 },
+            selectedStudent && { opacity: 0.7 },
           ]}
         >
           <Text
@@ -169,8 +187,11 @@ export default function IncidenceForm() {
               color: student ? COLORS.onSurface : COLORS.onSurfaceVariant,
             }}
           >
-            {student ||
-              (course ? "Selecciona un alumno" : "Elige un curso primero")}
+            {student
+              ? `${student.name} (${student.dni})`
+              : course
+                ? "Selecciona un alumno"
+                : "Elige un curso primero"}
           </Text>
         </Pressable>
 
@@ -190,7 +211,7 @@ export default function IncidenceForm() {
                 renderItem={({ item }) => (
                   <TouchableOpacity
                     onPress={() => {
-                      setStudent(`${item.name} (${item.dni})`);
+                      setStudent(item);
                       setStudentModalVisible(false);
                       setStudentQuery("");
                     }}

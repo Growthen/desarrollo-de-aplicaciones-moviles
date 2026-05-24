@@ -2,7 +2,6 @@ import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
 import ThemedText from "@/shared/components/ThemedText";
-import ActionRow from "@/shared/components/ActionRow";
 import { COLORS } from "@/shared/constants/colors";
 import { useAuth } from "@/features/auth";
 
@@ -51,7 +50,7 @@ function truncateText(text: string, maxLength: number) {
 
 export default function ProfesorScreen() {
   const navigation = useNavigation<any>();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
   return (
     <View style={styles.container}>
@@ -60,30 +59,36 @@ export default function ProfesorScreen() {
           <ThemedText type="brandTitle">
             Hola, {user?.username || "Profesor"}
           </ThemedText>
-          <ThemedText type="brandSubtitle">
-            Dashboard — Tus clases e incidencias recientes
-          </ThemedText>
         </View>
 
         <View style={styles.section}>
           <ThemedText type="button" style={styles.sectionTitle}>
             Clases asignadas
           </ThemedText>
-          {mockClasses.map((item) => (
-            <View key={item.id} style={{ marginBottom: 12 }}>
-              <ActionRow
-                icon="class"
-                iconBgColor={COLORS.primaryFixed}
-                iconColor={COLORS.onPrimaryFixed}
-                accentColor={COLORS.primary}
-                title={item.title}
-                subtitle={item.subtitle}
-                onPress={() => {
-                  /* aquí se podría abrir la lista de alumnos */
-                }}
-              />
+
+          {mockClasses.slice(0, 3).map((item) => (
+            <View key={item.id} style={styles.courseCard}>
+              <View style={styles.courseBadge}>
+                <ThemedText type="label" color="onPrimary">
+                  Curso
+                </ThemedText>
+              </View>
+
+              <ThemedText type="button" style={styles.courseTitle}>
+                {item.title}
+              </ThemedText>
+
+              <ThemedText type="body" style={styles.courseSubtitle}>
+                {item.subtitle}
+              </ThemedText>
             </View>
           ))}
+
+          <Pressable onPress={() => navigation.navigate("ProfesorClases")}>
+            <ThemedText type="label" style={styles.viewMore}>
+              Ver todos los cursos
+            </ThemedText>
+          </Pressable>
         </View>
 
         <View style={styles.section}>
@@ -147,6 +152,11 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     color: COLORS.primary,
   },
+  viewMore: {
+    color: COLORS.primary,
+    textAlign: "center",
+    marginTop: 6,
+  },
   incidentCard: {
     backgroundColor: COLORS.surfaceContainerLowest,
     borderRadius: 18,
@@ -191,5 +201,29 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 20,
     bottom: 24,
+  },
+  courseCard: {
+    backgroundColor: COLORS.surfaceContainerLowest,
+    borderRadius: 18,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: COLORS.surfaceContainerHigh,
+    gap: 10,
+  },
+
+  courseBadge: {
+    alignSelf: "flex-start",
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+  },
+
+  courseTitle: {
+    color: COLORS.onSurface,
+  },
+
+  courseSubtitle: {
+    color: COLORS.onSurfaceVariant,
   },
 });

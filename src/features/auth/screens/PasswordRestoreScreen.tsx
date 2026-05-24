@@ -34,7 +34,10 @@ export default function PasswordRestoreScreen() {
       {/* TopAppBar */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Pressable style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Pressable
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
             <MaterialIcons name="arrow-back" size={24} color={COLORS.primary} />
           </Pressable>
           <ThemedText
@@ -64,8 +67,8 @@ export default function PasswordRestoreScreen() {
               Actualizar Contraseña
             </ThemedText>
             <ThemedText type="body" style={styles.subtitle}>
-              Protege tu cuenta con una credencial segura para mantener tu información
-              académica a salvo.
+              Protege tu cuenta con una credencial segura para mantener tu
+              información académica a salvo.
             </ThemedText>
           </View>
 

@@ -1,9 +1,4 @@
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
-} from "react-native";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { COLORS, ThemedText } from "@/shared";
@@ -34,7 +29,8 @@ const Stack = createNativeStackNavigator<ConfigurationStackParamList>();
 
 function ConfigurationScreen() {
   const { user, logout } = useAuth();
-  const navigation = useNavigation<NativeStackNavigationProp<ConfigurationStackParamList>>();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<ConfigurationStackParamList>>();
 
   return (
     <View style={styles.root}>
@@ -44,11 +40,7 @@ function ConfigurationScreen() {
       >
         {/* ── Section Header ── */}
         <View style={styles.sectionHeader}>
-          <ThemedText
-            type="label"
-            color="primary"
-            style={styles.sectionTag}
-          >
+          <ThemedText type="label" color="primary" style={styles.sectionTag}>
             CONFIGURACIÓN DE USUARIO
           </ThemedText>
 
@@ -102,10 +94,7 @@ function ConfigurationScreen() {
               label="Código de Usuario"
               value={user?.username ?? "—"}
             />
-            <DataField
-              label="Correo Electrónico"
-              value={user?.email ?? "—"}
-            />
+            <DataField label="Correo Electrónico" value={user?.email ?? "—"} />
           </View>
         </View>
 
@@ -163,10 +152,7 @@ function ConfigurationScreen() {
               size={22}
               color={COLORS.onErrorContainer}
             />
-            <ThemedText
-              type="button"
-              color="onErrorContainer"
-            >
+            <ThemedText type="button" color="onErrorContainer">
               Cerrar Sesión
             </ThemedText>
           </Pressable>

@@ -8,14 +8,19 @@ const Tab = createBottomTabNavigator();
 export default function CoordinadorNavigator() {
   return (
     <Tab.Navigator screenOptions={{ headerShown: false }}>
-      <Tab.Screen name="CoordinadorDashboard" component={CoordinadorScreen}
+      <Tab.Screen
+        name="CoordinadorDashboard"
+        component={CoordinadorScreen}
         options={{
           title: "Dashboard",
           tabBarIcon: ({ color, size }) => (
             <MaterialIcons name="calendar-month" size={size} color={color} />
           ),
-        }} />
-      <Tab.Screen name="CoodinadorCrearUsers" component={CoordinadorScreen}
+        }}
+      />
+      <Tab.Screen
+        name="CoodinadorCrearUsers"
+        component={CoordinadorScreen}
         options={{
           title: "Crear Usuarios",
           tabBarIcon: ({ color, size }) => (
@@ -23,7 +28,9 @@ export default function CoordinadorNavigator() {
           ),
         }}
       />
-      <Tab.Screen name="CoordinadorCrearCurso" component={CoordinadorScreen}
+      <Tab.Screen
+        name="CoordinadorCrearCurso"
+        component={CoordinadorScreen}
         options={{
           title: "Crear Curso",
           tabBarIcon: ({ color, size }) => (
