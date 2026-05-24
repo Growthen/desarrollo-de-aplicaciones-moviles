@@ -17,11 +17,7 @@ export default function DataField({ label, value }: DataFieldProps) {
       >
         {label.toUpperCase()}
       </ThemedText>
-      <ThemedText
-        type="body"
-        color="onSurface"
-        style={styles.dataFieldValue}
-      >
+      <ThemedText type="body" color="onSurface" style={styles.dataFieldValue}>
         {value}
       </ThemedText>
     </View>

@@ -1,49 +1,14 @@
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { useEffect, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 
 import ThemedText from "@/shared/components/ThemedText";
 import { COLORS } from "@/shared/constants/colors";
 import { useAuth } from "@/features/auth";
 
-const mockClasses = [
-  { id: "1", title: "Matemáticas - 1A", subtitle: "25 alumnos" },
-  { id: "2", title: "Ciencias - 2B", subtitle: "22 alumnos" },
-  { id: "3", title: "Historia - 3C", subtitle: "18 alumnos" },
-];
-
-const mockIncidences = [
-  {
-    id: "i1",
-    title: "Retraso en la clase",
-    description:
-      "El alumno llegó tarde a clase y pidió permiso después de que la clase ya había comenzado.",
-    course: "Matemáticas - 1A",
-    student: "Juan Pérez",
-    timestamp: "2026-05-20T08:15:00Z",
-    status: "No leída",
-  },
-  {
-    id: "i2",
-    title: "Falta de tarea",
-    description:
-      "María no entregó la tarea de fin de semana en la materia de ciencias. Se le pedirá que la entregue mañana.",
-    course: "Ciencias - 2B",
-    student: "María Gómez",
-    timestamp: "2026-05-19T17:40:00Z",
-    status: "Leída",
-  },
-  {
-    id: "i3",
-    title: "Comportamiento en el aula",
-    description:
-      "Se observó que hay comportamiento disruptivo durante la explicación del tema. El alumno interrumpe con comentarios y risas constantes.",
-    course: "Historia - 3C",
-    student: "Ana Torres",
-    timestamp: "2026-05-18T10:30:00Z",
-    status: "No leída",
-  },
-];
-
+import { Course, Incidence } from "../types/types";
+import { getTeacherCourses } from "../services/courseService";
+import { getIncidences } from "../services/incidenceService";
 function truncateText(text: string, maxLength: number) {
   return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
 }
@@ -51,6 +16,20 @@ function truncateText(text: string, maxLength: number) {
 export default function ProfesorScreen() {
   const navigation = useNavigation<any>();
   const { user } = useAuth();
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [incidences, setIncidences] = useState<Incidence[]>([]);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  async function loadData() {
+    const coursesData = await getTeacherCourses();
+    const incidencesData = await getIncidences();
+
+    setCourses(coursesData);
+    setIncidences(incidencesData);
+  }
 
   return (
     <View style={styles.container}>
@@ -66,7 +45,7 @@ export default function ProfesorScreen() {
             Clases asignadas
           </ThemedText>
 
-          {mockClasses.slice(0, 3).map((item) => (
+          {courses.slice(0, 3).map((item) => (
             <View key={item.id} style={styles.courseCard}>
               <View style={styles.courseBadge}>
                 <ThemedText type="label" color="onPrimary">
@@ -95,7 +74,7 @@ export default function ProfesorScreen() {
           <ThemedText type="button" style={styles.sectionTitle}>
             Historial de incidencias
           </ThemedText>
-          {mockIncidences.map((incident) => (
+          {incidences.map((incident) => (
             <Pressable
               key={incident.id}
               style={styles.incidentCard}

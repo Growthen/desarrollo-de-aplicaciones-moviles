@@ -5,11 +5,13 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import ThemedText from "@/shared/components/ThemedText";
 import { COLORS } from "@/shared/constants/colors";
 
+import { Course, Student } from "../types/types";
+
 export default function CourseDetailScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
 
-  const { course } = route.params;
+  const { course }: { course: Course } = route.params;
 
   return (
     <View style={styles.container}>
@@ -21,12 +23,12 @@ export default function CourseDetailScreen() {
 
       <FlatList
         data={course.students}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item: Student) => item.id}
         contentContainerStyle={{ gap: 14 }}
         renderItem={({ item }) => (
           <View style={styles.studentCard}>
             <View style={{ flex: 1 }}>
-              <ThemedText type="button">{item.name}</ThemedText>
+              <ThemedText type="body">{item.name}</ThemedText>
 
               <ThemedText type="label">DNI: {item.dni}</ThemedText>
             </View>

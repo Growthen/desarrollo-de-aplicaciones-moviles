@@ -34,7 +34,9 @@ export default function ActionRow({
       ]}
     >
       <View style={styles.actionRowContent}>
-        <View style={[styles.actionIconCircle, { backgroundColor: iconBgColor }]}>
+        <View
+          style={[styles.actionIconCircle, { backgroundColor: iconBgColor }]}
+        >
           <MaterialIcons name={icon} size={24} color={iconColor} />
         </View>
 
@@ -56,11 +58,7 @@ export default function ActionRow({
         </View>
       </View>
 
-      <MaterialIcons
-        name="chevron-right"
-        size={24}
-        color={accentColor}
-      />
+      <MaterialIcons name="chevron-right" size={24} color={accentColor} />
     </Pressable>
   );
 }

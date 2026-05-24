@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Alert,
   KeyboardAvoidingView,
@@ -19,6 +19,10 @@ import ThemedText from "@/shared/components/ThemedText";
 import { COLORS } from "@/shared/constants/colors";
 import { useAuth } from "@/features/auth";
 
+import { Course, Student } from "../types/types";
+import { getTeacherCourses } from "../services/courseService";
+import { createIncidence } from "../services/incidenceService";
+
 export default function IncidenceForm() {
   const navigation = useNavigation();
   const route = useRoute<any>();
@@ -28,40 +32,29 @@ export default function IncidenceForm() {
   const selectedStudent = route.params?.student;
 
   const [title, setTitle] = useState("");
-  const [student, setStudent] = useState<any>(selectedStudent ?? null);
+  const [student, setStudent] = useState<Student | null>(
+    selectedStudent ?? null,
+  );
 
   const [description, setDescription] = useState("");
-  const [course, setCourse] = useState<any>(selectedCourse ?? null);
+  const [course, setCourse] = useState<Course | null>(selectedCourse ?? null);
+  const [courses, setCourses] = useState<Course[]>([]);
 
   const [courseModalVisible, setCourseModalVisible] = useState(false);
   const [studentModalVisible, setStudentModalVisible] = useState(false);
   const [studentQuery, setStudentQuery] = useState("");
+  useEffect(() => {
+    loadCourses();
+  }, []);
 
-  // Mock courses and students (front-end only)
-  const mockCourses = [
-    { id: "1", title: "Matemáticas - 1A" },
-    { id: "2", title: "Ciencias - 2B" },
-    { id: "3", title: "Historia - 3C" },
-  ];
-
-  const mockStudentsByCourse: Record<
-    string,
-    { id: string; name: string; dni: string }[]
-  > = {
-    "1": [
-      { id: "s1", name: "Juan Pérez", dni: "12345678" },
-      { id: "s2", name: "María Gómez", dni: "87654321" },
-    ],
-    "2": [
-      { id: "s3", name: "Carlos Ruiz", dni: "11223344" },
-      { id: "s4", name: "Lucía Díaz", dni: "44332211" },
-    ],
-    "3": [{ id: "s5", name: "Ana Torres", dni: "55667788" }],
-  };
+  async function loadCourses() {
+    const data = await getTeacherCourses();
+    setCourses(data);
+  }
 
   const availableStudents = useMemo(() => {
     if (!course) return [];
-    return mockStudentsByCourse[course.id] ?? [];
+    return course.students ?? [];
   }, [course]);
 
   const filteredStudents = useMemo(() => {
@@ -72,7 +65,7 @@ export default function IncidenceForm() {
     );
   }, [availableStudents, studentQuery]);
 
-  function onSave() {
+  async function onSave() {
     if (!title || !student || !description || !course) {
       Alert.alert(
         "Faltan datos",
@@ -85,20 +78,11 @@ export default function IncidenceForm() {
       title,
       description,
 
-      studentId: student.id,
-      studentName: student.name,
-
-      courseId: course.id,
-      courseName: course.title,
-
-      createdBy: user?.username ?? "",
-      createdAt: new Date().toISOString(),
-
-      status: "PENDIENTE",
+      studentId: Number(student.id),
+      classId: Number(course.id),
     };
 
-    // Aquí iría la llamada al servicio real para persistir la incidencia.
-    console.log("Incidence saved (mock):", incidence);
+    await createIncidence(incidence);
 
     Alert.alert("Guardado", "La incidencia se ha guardado correctamente.", [
       { text: "OK", onPress: () => navigation.goBack() },
@@ -139,8 +123,8 @@ export default function IncidenceForm() {
             <View style={styles.modalContent}>
               <ThemedText type="brandSubtitle">Selecciona un curso</ThemedText>
               <FlatList
-                data={mockCourses}
-                keyExtractor={(c) => c.id}
+                data={courses}
+                keyExtractor={(c) => c.id.toString()}
                 renderItem={({ item }) => (
                   <TouchableOpacity
                     onPress={() => {
@@ -207,7 +191,7 @@ export default function IncidenceForm() {
               />
               <FlatList
                 data={filteredStudents}
-                keyExtractor={(s) => s.id}
+                keyExtractor={(s) => s.id.toString()}
                 renderItem={({ item }) => (
                   <TouchableOpacity
                     onPress={() => {
