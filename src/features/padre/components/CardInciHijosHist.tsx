@@ -1,35 +1,61 @@
-
 import { COLORS, ThemedText } from "@/shared";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Pressable, View, StyleSheet, Text } from "react-native";
 
+import { useState } from "react";
+import type { IconIncidencia } from "../mockIncidencias";
+
 export type CardInciHijosHistProps = {
-    icon: React.ComponentProps<typeof MaterialIcons>["name"];
+    icon: IconIncidencia;
     iconbgcolor: string;
     iconcolor: string;
     //accentcolor: string;
 
-    
+    id: number;
     titulo: string;
     fecha: string; //cambiar
     profesor: string;
     descripcion: string;
-    estado: string; //boolean? cambiar
+    estado: "NO_LEIDA" | "LEIDA"; //boolean? cambiar
     
     onPress?: () => void; //no devuelve nada 
+    onEstadoCambiado?: (id: number, nuevoEstado: "NO_LEIDA" | "LEIDA") => void; //test para shadows y status y asi
     
+};
+
+function ObtenerShadowxStatus(estado: "NO_LEIDA" | "LEIDA"): string {
+  return estado === "NO_LEIDA" ? "rgb(49, 130, 200)" : "rgb(120, 120, 120)"
 }
 
-export default function CardInciHijosHist({icon, iconbgcolor, iconcolor, titulo, fecha,
-    profesor, descripcion, estado, onPress} : CardInciHijosHistProps){
+function ObtenerBorderxStatus(estado: "NO_LEIDA" | "LEIDA"): string {
+  return estado === "NO_LEIDA" ? "rgb(49, 130, 200)" : COLORS.onSurfaceVariant;
+}
+
+export default function CardInciHijosHist({icon, iconbgcolor, id, iconcolor, titulo, fecha, profesor, descripcion, 
+  estado, onPress, onEstadoCambiado} : CardInciHijosHistProps){
+    //estado local que viene con del componente padre (cardincihijos) permite cambios visuales sin backend
+    //por el momento
+    const [statusLocal, setEstatusLocal] = useState<"NO_LEIDA" | "LEIDA">(estado);
 
     const truncateText = (text: string, maxLength: number): string => {
         return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
     };
 
+    function handleOnPress(){ //para q al presionar pase a leida
+      if(statusLocal === "NO_LEIDA"){
+        const newStatus= "LEIDA";
+        setEstatusLocal(newStatus);
+        //este estado hace q el componente padre actualice los contadores pending solved
+        onEstadoCambiado?.(id, newStatus)
+      }
+      onPress?.();
+    }
+
     return(
-        <Pressable onPress={onPress} style={({pressed}) => [styles.cardContenido, 
-            { borderLeftColor: estado, borderRightColor: estado}, pressed && 
+        <Pressable onPress={handleOnPress} style={({pressed}) => [styles.cardContenido, 
+            { borderLeftColor: ObtenerBorderxStatus(statusLocal), 
+              borderRightColor: ObtenerBorderxStatus(statusLocal),
+              boxShadow: `0px 1px 4px ${ObtenerShadowxStatus(statusLocal)}`}, pressed && 
             styles.cardContenidoPressed
         ]}>
             <View style={styles.cardColumnContenido}> 
@@ -84,7 +110,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderLeftWidth: 2,
     borderRightWidth: 2,
-    boxShadow: '0px 1px 4px rgb(49, 130, 200)',
+    //boxShadow: '0px 1px 4px rgb(49, 130, 200)',
     marginBottom: 10,
   },
   cardContenidoPressed: {
@@ -92,7 +118,7 @@ const styles = StyleSheet.create({
     transform: [{ scale: 0.98 }],
     borderLeftColor: COLORS.inverseSurface,
     borderRightColor: COLORS.inverseSurface,
-    boxShadow: '0px 1px 4px rgb(24, 22, 18)',
+    //boxShadow: '0px 1px 4px rgb(24, 22, 18)',
   },
   cardColumnContenido: {
     flexDirection: "column",
@@ -138,7 +164,7 @@ const styles = StyleSheet.create({
     height: 1,
     alignSelf: 'center',
     borderRadius: 9999,
-    backgroundColor: COLORS.primary,
+    //backgroundColor: COLORS.primary,
   },
 
 

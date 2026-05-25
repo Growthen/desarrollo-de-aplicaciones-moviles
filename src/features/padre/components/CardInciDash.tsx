@@ -11,8 +11,7 @@ export type CardInciDashProps = {
     icon: React.ComponentProps<typeof MaterialIcons>["name"];
     iconbgcolor: string;
     iconcolor: string;
-    //accentcolor: string;
-
+    
     titulo: string;
     fecha: string; //cambiar
     profesor: string;

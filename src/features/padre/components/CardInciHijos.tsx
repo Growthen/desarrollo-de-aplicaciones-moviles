@@ -1,4 +1,3 @@
-
 import { COLORS, ThemedText } from "@/shared";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useState } from "react";
@@ -20,9 +19,8 @@ const card_inci: number= 4;
 export type CardInciHijosProps = {
     icon: React.ComponentProps<typeof MaterialIcons>["name"];
     iconbgcolor: string;
-    iconcolor: string;
-    //accentcolor: string;
-
+    iconcolor: string
+    
     alum_nom: string;
     alum_grado: string;
     alum_code: string;
@@ -30,12 +28,14 @@ export type CardInciHijosProps = {
     solved_alum: number;
     totalhijos: number;
     inci: Incidencia[]; //cambiar, mock array
-    onPress?: () => void; //no devuelve nada 
+    onPress?: () => void;
+    onEstadoCambiado?: (inciId: number, nuevoStatus: "NO_LEIDA" | "LEIDA") => void; //no devuelve nada 
     
 }
 
 export default function CardInciHijos({icon, iconbgcolor, iconcolor, alum_nom, alum_grado, alum_code, 
-    pending_alum, solved_alum, onPress, totalhijos, inci} : CardInciHijosProps){
+    pending_alum, solved_alum, onPress, totalhijos, inci, onEstadoCambiado} : CardInciHijosProps){
+
         {/*expandir o no la card de hijos incidencias(4), si no es uno es false y no se expande*/}
     const [cardExpandida, setCardExpandida] = useState(totalhijos === 1);
         {/*cantidad de incidencias visibles, empieza siempre en 4, puede ser cambiado */}
@@ -48,7 +48,7 @@ export default function CardInciHijos({icon, iconbgcolor, iconcolor, alum_nom, a
         {/*enseña mas pero evita pasarse si no es un multiplo de 4, si es el total de incidencias fuera menor
             enseña la diferencia*/}
     const showMore = () => {
-        setVisible((prevVisi) => Math.min(prevVisi + card_inci, pending_alum + solved_alum));
+        setVisible((prevVisi) => Math.min(prevVisi + card_inci, inci.length));
     };
         {/*al colapsar, resetea acciones a la primera tanda de incidencias si estaba expandida sino nada,
             si estaba cerrada la abre !prev revierte el booleano*/}
@@ -58,6 +58,7 @@ export default function CardInciHijos({icon, iconbgcolor, iconcolor, alum_nom, a
         }
         setCardExpandida((prev) => !prev);
     }
+    
 
     {/*navegacion a la detailscreen */}
     const navigator = useNavigation<NativeStackNavigationProp<PadreHijosStackParams>>();
@@ -121,8 +122,9 @@ export default function CardInciHijos({icon, iconbgcolor, iconcolor, alum_nom, a
                             <>
                                 {inciVisibles.map((ind) => (
                                     <CardInciHijosHist key={ind.id} icon={ind.icon} iconbgcolor={ind.iconbgcolor}
-                                        iconcolor={ind.iconcolor} titulo={ind.titulo} fecha={ind.fecha} 
+                                        iconcolor={ind.iconcolor} id={ind.id} titulo={ind.titulo} fecha={ind.fecha} 
                                         profesor={ind.profesor} descripcion={ind.descripcion} estado={ind.estado} 
+                                        onEstadoCambiado={onEstadoCambiado}
                                         onPress={() => navigator.navigate("inciDetail", {incidencia: ind})}/>
                                 ))}
 
@@ -130,7 +132,7 @@ export default function CardInciHijos({icon, iconbgcolor, iconcolor, alum_nom, a
                                 {moreInci && (
                                     <Pressable onPress={showMore} style={styles.inciShowMore}>
                                         <ThemedText type="label" color="onSurface" style={styles.inciShowMoreText}>
-                                            Mostrar Mas
+                                            Mostrar Más
                                         </ThemedText>
                                         <MaterialIcons name="expand-more" size={16} color={COLORS.onSurface}/>
                                     </Pressable>

@@ -65,9 +65,10 @@ export default function PadreInciHijoDetail(){
                                 {incidencia.titulo}
                             </ThemedText>
 
-                            <View style={styles.detContBadge}>
+                            <View style={[styles.detContBadge, {backgroundColor: incidencia.estado === "LEIDA" ? 
+                                  COLORS.onSurfaceVariant : COLORS.primary}]}>
                                 <ThemedText type="roleLabel" color="onSecondary" style={styles.detBadgeTexto}>
-                                    Leido
+                                    {incidencia.estado === "LEIDA" ? "Leído" : "No Leído"}
                                 </ThemedText>
                             </View>
                         </View>

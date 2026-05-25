@@ -1,20 +1,35 @@
 import { Text, View, StyleSheet, ScrollView, Image } from "react-native";
 
 import { useAuth } from "@/features/auth";
+import { useState } from "react";
 
 import { COLORS, ThemedText } from "@/shared";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import CardInciHijos from "../components/CardInciHijos";
 import { MOCK_HIJOS } from "../mockIncidencias";
+import type { Incidencia } from "../mockIncidencias";
 
 export default function PadreHijosScreen(){
 
     const { user} = useAuth();
-    const totalhijos = MOCK_HIJOS;
+   
+    //estado central, inicializa desde el mock, temporal
+    //para el backend seria useeffect
+    const [incixHijo, setIncixHijo] = useState<Record<number, Incidencia[]>>(
+      () => Object.fromEntries(MOCK_HIJOS.map((h) => [h.id, h.inci]))
+    );
 
-    
-    
+    //totales para los badges del header
+    const inciTotales= Object.values(incixHijo).flat();
+    const pendingTotal= inciTotales.filter((i) => i.estado === "NO_LEIDA").length;
+    const solvedTotal= inciTotales.filter((i) => i.estado === "LEIDA").length;
 
+    //ligado al onestadocambiado de cardincihijoshist, sube y actualiza
+    function handleStatusCambio(hijoId: number, inciId: number, nuevoStatus: "NO_LEIDA" | "LEIDA"){
+      setIncixHijo((prev) => ({
+        ...prev, [hijoId]: prev[hijoId].map((i) => i.id === inciId ? {...i, estado: nuevoStatus} : i)
+      }));
+    }
 
     return(
         <View style={styles.root}>
@@ -35,13 +50,13 @@ export default function PadreHijosScreen(){
                         <View style={styles.headercontenidobadge}>
                             <View style={styles.badgePending}>
                             <ThemedText type="roleLabel" color="onSecondary" style={styles.readBadgeText} >
-                                N° Pendientes
+                                {pendingTotal} Pendiente{pendingTotal !== 1 ? "s" : ""}
                             </ThemedText>
                             </View>
 
                             <View style={styles.badgeSolved}>
                             <ThemedText type="roleLabel" color="onSecondary" style={styles.readBadgeText} >
-                                N° Resueltos
+                                {solvedTotal} Resuelto{solvedTotal !== 1 ? "s" : ""}
                             </ThemedText>
                             </View>
                         </View>
@@ -65,7 +80,12 @@ export default function PadreHijosScreen(){
 
                     {/*tarjetas dependiendo si son uno o dos hijos */}
                     <View style={styles.contHijos}>
-                        {totalhijos.map((hijo) =>(
+                        {MOCK_HIJOS.map((hijo) => {
+                          const inciDeNHijo= incixHijo[hijo.id] ?? [];
+                          const pending= inciDeNHijo.filter((i) => i.estado === "NO_LEIDA").length;
+                          const solved= inciDeNHijo.filter((i) => i.estado === "LEIDA").length;
+
+                          return(
                             <CardInciHijos key={hijo.id}
                                 icon="account-circle"
                                 iconbgcolor="rgba(167,51,0,0.1)"
@@ -73,11 +93,17 @@ export default function PadreHijosScreen(){
                                 alum_nom={hijo.alum_nom}
                                 alum_grado={hijo.alum_grado}
                                 alum_code={hijo.alum_code}
-                                pending_alum={hijo.pending_alum}
-                                solved_alum={hijo.solved_alum}
-                                inci={hijo.inci}
-                                totalhijos={totalhijos.length}/>
-                        ))}
+                                pending_alum={pending}
+                                solved_alum={solved}
+                                inci={inciDeNHijo}
+                                totalhijos={MOCK_HIJOS.length}
+                                onEstadoCambiado={(inciId, nuevoStatus) => 
+                                  handleStatusCambio(hijo.id, inciId, nuevoStatus)
+                                }
+                              />
+                          );
+                            
+                        })}
 
                     </View>
 
