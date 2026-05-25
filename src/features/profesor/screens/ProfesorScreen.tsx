@@ -1,6 +1,6 @@
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
-import { useEffect, useState } from "react";
-import { useNavigation } from "@react-navigation/native";
+import { useEffect, useState, useCallback } from "react";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 
 import ThemedText from "@/shared/components/ThemedText";
 import { COLORS } from "@/shared/constants/colors";
@@ -19,16 +19,22 @@ export default function ProfesorScreen() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [incidences, setIncidences] = useState<Incidence[]>([]);
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, []),
+  );
 
   async function loadData() {
-    const coursesData = await getTeacherCourses();
-    const incidencesData = await getIncidences();
+    try {
+      const coursesData = await getTeacherCourses();
+      const incidencesData = await getIncidences();
 
-    setCourses(coursesData);
-    setIncidences(incidencesData);
+      setCourses(coursesData);
+      setIncidences(incidencesData);
+    } catch (error) {
+      console.error("Error cargando dashboard:", error);
+    }
   }
 
   return (

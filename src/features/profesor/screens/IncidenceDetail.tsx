@@ -27,27 +27,30 @@ export default function IncidenceDetail() {
 
     const statusColor =
         incidence.status === "Leída" ? COLORS.secondary : COLORS.error;
-    const timestamp = new Date(incidence.timestamp).toLocaleString("es-PE", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-    });
+
+    const date = new Date(incidence.timestamp);
+
+    const timestamp = `${date.toLocaleDateString("es-PE")} - ${date.toLocaleTimeString(
+        "es-PE",
+        {
+            hour: "2-digit",
+            minute: "2-digit",
+        },
+    )}`;
 
     return (
-        
+
         <View style={styles.container}>
             <View style={styles.header}>
                 <ThemedText type="brandTitle">Detalle de incidencia</ThemedText>
-                
+
             </View>
             <Pressable
-                    onPress={() => navigation.goBack()}
-                    style={styles.backButton}
-                >
-                    <Text style={styles.backButtonText}>{"<"}</Text>
-                </Pressable>
+                onPress={() => navigation.goBack()}
+                style={styles.backButton}
+            >
+                <Text style={styles.backButtonText}>{"<"}</Text>
+            </Pressable>
             <View style={styles.card}>
                 <View style={styles.statusRow}>
                     <View style={[styles.statusTag, { backgroundColor: statusColor }]}>

@@ -22,6 +22,7 @@ import { useAuth } from "@/features/auth";
 import { Course, Student } from "../types/types";
 import { getTeacherCourses } from "../services/courseService";
 import { createIncidence } from "../services/incidenceService";
+import { getStudentsByClass } from "../services/studentService";
 
 export default function IncidenceForm() {
   const navigation = useNavigation();
@@ -40,30 +41,40 @@ export default function IncidenceForm() {
   const [course, setCourse] = useState<Course | null>(selectedCourse ?? null);
   const [courses, setCourses] = useState<Course[]>([]);
 
+  const [students, setStudents] = useState<Student[]>([]);
   const [courseModalVisible, setCourseModalVisible] = useState(false);
   const [studentModalVisible, setStudentModalVisible] = useState(false);
   const [studentQuery, setStudentQuery] = useState("");
+
   useEffect(() => {
     loadCourses();
+  }, []);
+
+  useEffect(() => {
+    if (selectedCourse) {
+      loadStudents(selectedCourse.id);
+    }
   }, []);
 
   async function loadCourses() {
     const data = await getTeacherCourses();
     setCourses(data);
   }
-
-  const availableStudents = useMemo(() => {
-    if (!course) return [];
-    return course.students ?? [];
-  }, [course]);
+  async function loadStudents(classId: number) {
+    const data = await getStudentsByClass(classId);
+    setStudents(data);
+  }
 
   const filteredStudents = useMemo(() => {
     const q = studentQuery.trim().toLowerCase();
-    if (!q) return availableStudents;
-    return availableStudents.filter(
-      (s) => s.name.toLowerCase().includes(q) || s.dni.includes(q),
+
+    if (!q) return students;
+
+    return students.filter(
+      (s) =>
+        s.name.toLowerCase().includes(q) || s.dni.toLowerCase().includes(q),
     );
-  }, [availableStudents, studentQuery]);
+  }, [students, studentQuery]);
 
   async function onSave() {
     if (!title || !student || !description || !course) {
@@ -127,8 +138,11 @@ export default function IncidenceForm() {
                 keyExtractor={(c) => c.id.toString()}
                 renderItem={({ item }) => (
                   <TouchableOpacity
-                    onPress={() => {
+                    onPress={async () => {
                       setCourse(item);
+
+                      await loadStudents(item.id);
+
                       setCourseModalVisible(false);
                       setStudent(null);
                       setStudentQuery("");

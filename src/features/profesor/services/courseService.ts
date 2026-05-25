@@ -7,11 +7,15 @@ export async function getTeacherCourses() {
     id: course.id,
     title: course.name,
     subtitle: `${course.students?.length || 0} alumnos`,
-    students:
-      course.students?.map((student: any) => ({
-        id: student.id,
-        name: student.fullName,
-        dni: student.dni,
-      })) || [],
+  }));
+}
+
+export async function getStudentsByClassId(classId: number) {
+  const response = await api.get(`/api/classes/${classId}/students`);
+
+  return response.data.data.map((student: any) => ({
+    id: student.id,
+    name: `${student.firstName} ${student.lastName}`,
+    dni: student.dni,
   }));
 }

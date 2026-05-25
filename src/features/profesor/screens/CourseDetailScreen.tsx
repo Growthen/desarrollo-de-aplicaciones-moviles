@@ -1,4 +1,5 @@
 import { FlatList, Pressable, StyleSheet, View } from "react-native";
+import { useEffect, useState } from "react";
 
 import { useNavigation, useRoute } from "@react-navigation/native";
 
@@ -7,11 +8,28 @@ import { COLORS } from "@/shared/constants/colors";
 
 import { Course, Student } from "../types/types";
 
+import { getStudentsByClassId } from "../services/courseService";
+
 export default function CourseDetailScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
 
   const { course }: { course: Course } = route.params;
+
+  const [students, setStudents] = useState<Student[]>([]);
+
+  useEffect(() => {
+    loadStudents();
+  }, []);
+
+  async function loadStudents() {
+    try {
+      const data = await getStudentsByClassId(course.id);
+      setStudents(data);
+    } catch (error) {
+      console.error("Error cargando alumnos:", error);
+    }
+  }
 
   return (
     <View style={styles.container}>
@@ -22,8 +40,8 @@ export default function CourseDetailScreen() {
       </ThemedText>
 
       <FlatList
-        data={course.students}
-        keyExtractor={(item: Student) => item.id}
+        data={students}
+        keyExtractor={(item: Student) => item.id.toString()}
         contentContainerStyle={{ gap: 14 }}
         renderItem={({ item }) => (
           <View style={styles.studentCard}>
