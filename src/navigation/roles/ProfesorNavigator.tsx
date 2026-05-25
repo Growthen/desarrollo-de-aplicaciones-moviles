@@ -16,7 +16,7 @@ export default function ProfesorNavigator() {
             <MaterialIcons name="calendar-month" size={size} color={color} />
           ),
         }} />
-      <Tab.Screen name="ProfesorClases" component={ProfesorScreen}
+      <Tab.Screen name="ProfesorClases" component={ProfesorScreen} 
         options={{
           title: "Clases",
           tabBarIcon: ({ color, size }) => (

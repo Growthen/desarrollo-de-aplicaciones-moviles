@@ -6,6 +6,9 @@ import { Pressable, View, StyleSheet, Text } from "react-native";
 import type { Incidencia } from "../mockIncidencias";
 import CardInciHijosHist from "./CardInciHijosHist";
 
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type { PadreHijosStackParams } from "../navigation/PadreHijosStack";
 
 //card de un hijo: icon, nombre_alum, grado, badge pending, badge solved, componente de incidentes
 //ya desplegada
@@ -55,6 +58,9 @@ export default function CardInciHijos({icon, iconbgcolor, iconcolor, alum_nom, a
         }
         setCardExpandida((prev) => !prev);
     }
+
+    {/*navegacion a la detailscreen */}
+    const navigator = useNavigation<NativeStackNavigationProp<PadreHijosStackParams>>();
     
     
     return(
@@ -116,7 +122,8 @@ export default function CardInciHijos({icon, iconbgcolor, iconcolor, alum_nom, a
                                 {inciVisibles.map((ind) => (
                                     <CardInciHijosHist key={ind.id} icon={ind.icon} iconbgcolor={ind.iconbgcolor}
                                         iconcolor={ind.iconcolor} titulo={ind.titulo} fecha={ind.fecha} 
-                                        profesor={ind.profesor} descripcion={ind.descripcion} estado={ind.estado} />
+                                        profesor={ind.profesor} descripcion={ind.descripcion} estado={ind.estado} 
+                                        onPress={() => navigator.navigate("inciDetail", {incidencia: ind})}/>
                                 ))}
 
                                 {/*show more */}

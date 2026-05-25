@@ -1,7 +1,7 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
 import { PadreScreen } from "@/features/padre";
-import { PadreHijosScreen } from "@/features/padre";
+import PadreHijosStack from "@/features/padre/navigation/PadreHijosStack";
 import ConfigurationNavigator from "../components/ConfigurationNavigator";
 import { MaterialIcons } from "@expo/vector-icons";
 
@@ -17,7 +17,7 @@ export default function PadreNavigator() {
             <MaterialIcons name="calendar-month" size={size} color={color} />
           ),
         }} />
-      <Tab.Screen name="PadreHijos" component={PadreHijosScreen}
+      <Tab.Screen name="PadreHijos" component={PadreHijosStack} //qmiedo
         options={{
           title: "Hijos",
           tabBarIcon: ({ color, size }) => (

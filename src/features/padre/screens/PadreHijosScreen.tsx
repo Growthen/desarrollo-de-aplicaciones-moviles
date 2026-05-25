@@ -1,4 +1,4 @@
-import { Pressable, Text, View, StyleSheet, ScrollView, Image } from "react-native";
+import { Text, View, StyleSheet, ScrollView, Image } from "react-native";
 
 import { useAuth } from "@/features/auth";
 
@@ -9,7 +9,7 @@ import { MOCK_HIJOS } from "../mockIncidencias";
 
 export default function PadreHijosScreen(){
 
-    const { user, logout } = useAuth();
+    const { user} = useAuth();
     const totalhijos = MOCK_HIJOS;
 
     

@@ -1,4 +1,4 @@
-import { Pressable, Text, View, StyleSheet, ScrollView, Image } from "react-native";
+import { Pressable, Text, View, StyleSheet, ScrollView } from "react-native";
 import { useAuth } from "@/features/auth";
 
 import { COLORS, ThemedText } from "@/shared";
