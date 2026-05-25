@@ -21,7 +21,7 @@ export default function EmailRestoreScreen() {
   const [focusedField, setFocusedField] = useState<string | null>(null);
 
   return (
-    <SafeAreaView style={styles.root} edges={["top", "bottom"]}>
+    <SafeAreaView style={styles.root} edges={["bottom"]}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.surface} />
 
       {/* TopAppBar */}

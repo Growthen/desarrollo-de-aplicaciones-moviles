@@ -2,6 +2,9 @@ import { create } from "axios";
 import type {
   LoginRequest,
   RegisterRequest,
+  ForgotPasswordRequest,
+  VerifyResetCodeRequest,
+  ResetPasswordRequest,
   AuthResponse,
 } from "../types/auth.types";
 import { getToken } from "./token";
@@ -39,6 +42,36 @@ export const RegisterService = async (
   data: RegisterRequest,
 ): Promise<AuthResponse> => {
   const response = await api.post<AuthResponse>("/api/auth/register", data);
+  return response.data;
+};
+
+export const forgotPasswordService = async (
+  data: ForgotPasswordRequest,
+): Promise<AuthResponse> => {
+  const response = await api.post<AuthResponse>(
+    "/api/auth/forgot-password",
+    data,
+  );
+  return response.data;
+};
+
+export const verifyResetCodeService = async (
+  data: VerifyResetCodeRequest,
+): Promise<AuthResponse> => {
+  const response = await api.post<AuthResponse>(
+    "/api/auth/verify-reset-code",
+    data,
+  );
+  return response.data;
+};
+
+export const resetPasswordService = async (
+  data: ResetPasswordRequest,
+): Promise<AuthResponse> => {
+  const response = await api.post<AuthResponse>(
+    "/api/auth/reset-password",
+    data,
+  );
   return response.data;
 };
 

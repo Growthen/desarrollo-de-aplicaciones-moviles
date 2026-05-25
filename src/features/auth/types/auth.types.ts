@@ -10,6 +10,21 @@ export type RegisterRequest = {
   password: string;
 };
 
+export type ForgotPasswordRequest = {
+  email: string;
+};
+
+export type VerifyResetCodeRequest = {
+  email: string;
+  code: string;
+};
+
+export type ResetPasswordRequest = {
+  email: string;
+  newPassword: string;
+  confirmPassword: string;
+};
+
 export type AuthRole = "COORDINADOR" | "PROFESOR" | "PADRE";
 
 export type AuthResponseData = {

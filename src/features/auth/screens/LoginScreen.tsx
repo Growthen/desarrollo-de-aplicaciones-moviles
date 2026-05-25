@@ -13,6 +13,7 @@ import {
 
 import useAuth from "@/features/auth/hooks/useAuth";
 import { useState } from "react";
+import { useNavigation } from "@react-navigation/native";
 
 import { LinearGradient } from "expo-linear-gradient";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
@@ -23,6 +24,7 @@ import DevBypassButtons from "@/features/auth/components/DevBypassButtons";
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export default function LoginScreen() {
+  const navigation = useNavigation<any>();
   const { login, Register, isLoading, error } = useAuth();
 
   const [username, setUsername] = useState("");
@@ -310,7 +312,10 @@ export default function LoginScreen() {
           </View>
 
           {isLoginView && (
-            <Pressable style={styles.forgotContainer}>
+            <Pressable
+              style={styles.forgotContainer}
+              onPress={() => navigation.navigate("ForgotPassword")}
+            >
               <ThemedText type="link">¿Olvidaste tu contraseña?</ThemedText>
             </Pressable>
           )}
