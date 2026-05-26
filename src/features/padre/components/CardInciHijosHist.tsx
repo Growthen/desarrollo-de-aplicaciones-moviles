@@ -3,7 +3,7 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Pressable, View, StyleSheet, Text } from "react-native";
 
 import { useState } from "react";
-import type { IconIncidencia } from "../mockIncidencias";
+import { formatFecha, type IconIncidencia } from "../mockIncidencias";
 
 export type CardInciHijosHistProps = {
     icon: IconIncidencia;
@@ -74,7 +74,7 @@ export default function CardInciHijosHist({icon, iconbgcolor, id, iconcolor, tit
                         </ThemedText>
 
                         <ThemedText type="body" color="onSurfaceVariant" style={styles.cardHeaderprof}>
-                            {profesor} ⤷ {fecha}
+                            {profesor} ⤷ {formatFecha(fecha)}
                         </ThemedText>
 
                     </View>

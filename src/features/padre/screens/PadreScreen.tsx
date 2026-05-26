@@ -4,13 +4,40 @@ import { useAuth } from "@/features/auth";
 import { COLORS, ThemedText } from "@/shared";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import CardInciDash from "../components/CardInciDash";
+import { MOCK_HIJOS } from "../mockIncidencias";
+import type { Incidencia } from "../mockIncidencias";
 
+import { useState } from "react";
+
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type { PadreHijosStackParams } from "../navigation/PadreHijosStack";
+import { PadreDashStackParams } from "../navigation/PadreDashStack";
+
+const card_inci_dash= 4;
 
 export default function PadreScreen() {
   const { user, logout } = useAuth();
   const truncateText = (text: string, maxLength: number): string => {
     return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
   };
+
+  //estado central, pruebas mock
+  const [incixhijoD, setIncixHijoD] = useState<Record<number, Incidencia[]>>(
+    () => Object.fromEntries(MOCK_HIJOS.map((h) => [h.id, h.inci]))
+  );
+
+  //totales para los badges
+  const inciTotalesD= Object.values(incixhijoD).flat();
+  const pendingTotalD= inciTotalesD.filter((i) => i.estado === "NO_LEIDA").length;
+  const solvedTotalD= inciTotalesD.filter((i) => i.estado === "LEIDA").length;
+
+  //incidencias de todos, ordenadas por fecha descendente y cortadas a las primeras 4
+  const inciVisiDash= inciTotalesD.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())
+                      .slice(0, card_inci_dash);
+
+  //navigator
+  const nemonemo= useNavigation<NativeStackNavigationProp<PadreDashStackParams>>();
 
   return (
     <View style={styles.root}>
@@ -31,13 +58,13 @@ export default function PadreScreen() {
               <View style={styles.headercontenidobadge}>
                 <View style={styles.badgePending}>
                   <ThemedText type="roleLabel" color="onSecondary" style={styles.readBadgeText} >
-                    N° Pendientes
+                    {pendingTotalD} Pendiente{pendingTotalD !== 1 ? "s" : ""}
                   </ThemedText>
                 </View>
 
                 <View style={styles.badgeSolved}>
                   <ThemedText type="roleLabel" color="onSecondary" style={styles.readBadgeText} >
-                    N° Resueltos
+                    {solvedTotalD} Resuelto{solvedTotalD !== 1 ? "s" : ""}
                   </ThemedText>
                 </View>
               </View>
@@ -62,42 +89,26 @@ export default function PadreScreen() {
           </View>
           {/*cards incidencias recientes 2 por n hijos, 4 por 1 hijo*/}
           <View style={styles.contenidoCont}>
+            {inciVisiDash.length === 0 ? (
+              <ThemedText type="body" color="onSurface" style={styles.inciDashNotFoundText}>
+                No hay incidentes registrados.
+              </ThemedText>
+            ) : (
+              inciVisiDash.map((inci) => (
+                <CardInciDash key={`${inci.nombre_alumno}-${inci.id}`}
+                  icon={inci.icon} iconcolor={inci.iconcolor} iconbgcolor={inci.iconbgcolor}
+                  titulo={inci.titulo}
+                  fecha={inci.fecha}
+                  profesor={inci.profesor}
+                  descripcion={truncateText(inci.descripcion, 102)}
+                  estado= {inci.estado}
+                  nombre_alumno={inci.nombre_alumno}
+                  onPress={() => nemonemo.navigate("inciDetail", {incidencia: inci})}
+                />
+              ))
+            )}
 
-            <CardInciDash icon="health-and-safety" iconcolor="#60bb70" iconbgcolor="#cfe1d3"
-            titulo="Idk help"
-            fecha="23/05/2026"
-            profesor="Nana"
-            descripcion={truncateText("El estudiante se raspo la rodilla durante el recreo, se le desinfecto la herida, se le dio un calmante y volvio a clase.", 102)}
-            estado= {COLORS.tertiaryContainer}
-            nombre_alumno="Mia luna, Apellido Apellido"
-            />
-
-            <CardInciDash icon="watch-later" iconcolor="#dac82b" iconbgcolor="#f0eab4"
-            titulo="Tardanza de 20 minutos"
-            fecha="23/05/2026"
-            profesor="Prof. Hachi Kurumizawa"
-            descripcion={truncateText("El estudiante llego 20 minutos tarde a la toma de asistencia matutina.", 102)}
-            estado= {COLORS.tertiaryContainer}
-            nombre_alumno="Ezio, Auditore da Firenze"
-            />
-
-            <CardInciDash icon="block-flipped" iconcolor="#d91d1d" iconbgcolor="#e1b2b2"
-            titulo="Falta dia martes del mes abril del año 2025"
-            fecha="23/05/2026"
-            profesor="Prof. Hachi Kurumizawa"
-            descripcion={truncateText("El estudiante no estuvo presente en las dos tomas de asistencia, asi mismo no se confirma su presencia en el centro de estudios.",102)}
-            estado= {COLORS.tertiaryContainer}
-            nombre_alumno="Ezio, Auditore da Firenze"
-            />
-
-            <CardInciDash icon="call" iconcolor={COLORS.primary} iconbgcolor="rgba(167,51,0,0.1)"
-            titulo="Disturbio en el aula"
-            fecha="23/05/2026"
-            profesor="Prof. Hachi Kurumizawa"
-            descripcion={truncateText("La estudiante causo disturbios en el aula A505 a mitad de la clase, hizo caso omiso a las advertencias previas y mostro un comportamiento faltoso hacia el docente y sus compañeros de aula.", 102)}
-            estado= {COLORS.tertiaryContainer}
-            nombre_alumno="Mia luna, Apellido Apellido"
-            />
+            
 
           </View>
           
@@ -222,7 +233,14 @@ const styles = StyleSheet.create({
   contenidoCont: {
     gap: 4,
     marginBottom: 8,
-  }
+  },
+  inciDashNotFoundText: {
+    fontSize: 12,
+    fontStyle: "italic",
+    opacity: 0.6,
+    paddingVertical: 8,
+    alignSelf: "center",
+  },
   
 
 })

@@ -4,13 +4,14 @@ import { PadreScreen } from "@/features/padre";
 import PadreHijosStack from "@/features/padre/navigation/PadreHijosStack";
 import ConfigurationNavigator from "../components/ConfigurationNavigator";
 import { MaterialIcons } from "@expo/vector-icons";
+import PadreDashStack from "@/features/padre/navigation/PadreDashStack";
 
 const Tab = createBottomTabNavigator();
 
 export default function PadreNavigator() {
   return (
     <Tab.Navigator screenOptions={{ headerShown: false }}>
-      <Tab.Screen name="PadreDashboard" component={PadreScreen}
+      <Tab.Screen name="PadreDashboard" component={PadreDashStack}
         options={{
           title: "Dashboard",
           tabBarIcon: ({ color, size }) => (

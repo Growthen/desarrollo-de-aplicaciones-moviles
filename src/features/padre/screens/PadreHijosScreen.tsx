@@ -1,7 +1,7 @@
 import { Text, View, StyleSheet, ScrollView, Image } from "react-native";
 
 import { useAuth } from "@/features/auth";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { COLORS, ThemedText } from "@/shared";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
@@ -9,26 +9,76 @@ import CardInciHijos from "../components/CardInciHijos";
 import { MOCK_HIJOS } from "../mockIncidencias";
 import type { Incidencia } from "../mockIncidencias";
 
+//backend
+import { ObtenerHijos, StudentResponse } from "../services/Student.service";
+import { ObtenerInciporEstudianteUI, ActuInciaLeida } from "../services/Incident.service";
+
 export default function PadreHijosScreen(){
 
     const { user} = useAuth();
    
+    /*
     //estado central, inicializa desde el mock, temporal
-    //para el backend seria useeffect
     const [incixHijo, setIncixHijo] = useState<Record<number, Incidencia[]>>(
       () => Object.fromEntries(MOCK_HIJOS.map((h) => [h.id, h.inci]))
     );
-
-    //totales para los badges del header
-    const inciTotales= Object.values(incixHijo).flat();
-    const pendingTotal= inciTotales.filter((i) => i.estado === "NO_LEIDA").length;
-    const solvedTotal= inciTotales.filter((i) => i.estado === "LEIDA").length;
 
     //ligado al onestadocambiado de cardincihijoshist, sube y actualiza
     function handleStatusCambio(hijoId: number, inciId: number, nuevoStatus: "NO_LEIDA" | "LEIDA"){
       setIncixHijo((prev) => ({
         ...prev, [hijoId]: prev[hijoId].map((i) => i.id === inciId ? {...i, estado: nuevoStatus} : i)
       }));
+    }*/
+   
+
+    //para el backend seria useeffect
+    const [hijos, setHijos] = useState<StudentResponse[]>([]);
+    const [incixHijo, setIncixHijo] = useState<Record<number, Incidencia[]>>({});
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    //totales para los badges del header
+    const inciTotales= Object.values(incixHijo).flat();
+    const pendingTotal= inciTotales.filter((i) => i.estado === "NO_LEIDA").length;
+    const solvedTotal= inciTotales.filter((i) => i.estado === "LEIDA").length;
+
+    useEffect(() => {
+      async function loadDatos(){
+        try{
+          const dataHijos= await ObtenerHijos();
+          const inciMapeo: Record<number, Incidencia[]> = {};
+          await Promise.all(
+            dataHijos.map(async (hijo) => {
+              inciMapeo[hijo.id] = await ObtenerInciporEstudianteUI(hijo.id);
+            })
+          );
+          setHijos(dataHijos);
+          setIncixHijo(inciMapeo);
+        }catch {
+          setError("No se pudieron cargar los datos.");
+        }finally {
+          setLoading(false);
+        }
+      }
+      loadDatos();
+    }, []);
+
+    async function handleStatusCambio(hijoId: number, inciId: number, nuevoStatus: "NO_LEIDA" | "LEIDA") {
+      // actualiza local primero (optimistic update)
+      setIncixHijo((prev) => ({ ...prev,[hijoId]: prev[hijoId].map((i) =>
+          i.id === inciId ? { ...i, estado: nuevoStatus } : i),
+      }));
+      // luego confirma con el backend
+      if (nuevoStatus === "LEIDA") {
+        try {
+          await ActuInciaLeida(inciId);
+        } catch {
+          // si falla, revierte
+          setIncixHijo((prev) => ({...prev,[hijoId]: prev[hijoId].map((i) =>
+              i.id === inciId ? { ...i, estado: "NO_LEIDA" } : i),
+          }));
+        }
+      }
     }
 
     return(

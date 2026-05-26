@@ -83,6 +83,10 @@ export default function PadreInciHijoDetail(){
                             <ThemedText type="label" color="onSurfaceVariant" style={styles.detContinfoText}>
                                 Prof: {incidencia.profesor}
                             </ThemedText>
+
+                            <ThemedText type="label" color="onSurfaceVariant" style={styles.detContinfoText}>
+                              Alumno: {incidencia.nombre_alumno}
+                            </ThemedText>
                         </View>
                         {/*mas info fecha prof fin*/}
                         <View style={[styles.accentBar, { backgroundColor: incidencia.iconcolor }]} />

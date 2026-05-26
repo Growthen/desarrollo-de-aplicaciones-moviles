@@ -15,7 +15,7 @@ export type Incidencia = {
 
   id: number;
   titulo: string;
-  fecha: string;
+  fecha: string;//iso
   profesor: string;
   descripcion: string;
   estado: "NO_LEIDA" | "LEIDA"; 
@@ -50,39 +50,48 @@ export function ObtenerIconxTitulo(titulo: string): IconColoresInci {
   return { icon: "call", iconbgcolor: "rgba(167,51,0,0.1)", iconcolor: "#a73300" };
 }
 
+//formatear fecha en front
+export function formatFecha(isoString: string): string {
+  const fecha = new Date(isoString);
+  return fecha.toLocaleDateString("es-PE", {
+    day: "2-digit", month: "2-digit", year: "numeric",
+    hour: "2-digit", minute: "2-digit", hour12: false,
+  });
+}
+
 export const MOCK_INCIDENCIAS_HIJO_1: Incidencia[] = [
   {
-    id: 1, titulo: "Alteración del orden", fecha: "12/05/2025",
+    id: 1, titulo: "Alteración del orden", fecha: "2025-05-12T08:00:00",
     profesor: "Prof. García", descripcion: "El alumno interrumpió la clase repetidamente asdasda asdasdasd asdasdasd, asdasd asdasdasd asdasdas ass asas sadasdasdasd asdasdasd.",
     estado: "NO_LEIDA", nombre_alumno: "Mia Auditore Firenze",
     ...ObtenerIconxTitulo("Alteración del orden"),
   },
   {
-    id: 2, titulo: "Tardanza", fecha: "10/05/2025",
+    id: 2, titulo: "Tardanza", fecha: "2025-05-10T08:25:36",
     profesor: "Prof. Torres", descripcion: "Llegó 20 minutos tarde sin justificación.",
     estado: "NO_LEIDA", nombre_alumno: "Mia Auditore Firenze",
     ...ObtenerIconxTitulo("Tardanza"),
   },
   {
-    id: 3, titulo: "Incidencia Médica", fecha: "08/05/2025",
+    id: 3, titulo: "Incidencia Médica", fecha: "2025-05-08T13:45:03",
     profesor: "Prof. Ríos", descripcion: "Se sintió mal durante educación física. Asafdasdasd asdasdasd asdasdsad. asdda asdasd asdsdsda adda asdas asdasds, asdsda asdasdasd asdad asdasd asdadas asdada sdada dad asda dad ada adba  adasda dasdad ad.",
     estado: "NO_LEIDA", nombre_alumno: "Mia Auditore Firenze",
     ...ObtenerIconxTitulo("Incidencia Médica"),
   },
   {
-    id: 4, titulo: "Alteración del orden", fecha: "05/05/2025",
+    id: 4, titulo: "Alteración del orden", fecha: "2025-05-05T11:20:28",
     profesor: "Prof. García", descripcion: "Discusión con un compañero de aula. Aasdas asdad asdasd asd  ad asdasd a sd asdasd asdad sdasda dsasda sdasdadadasd asd asdada s sdasd asda d asdas dasd asd as d asd a s ad asd a sd.",
     estado: "NO_LEIDA", nombre_alumno: "Mia Auditore Firenze",
     ...ObtenerIconxTitulo("Alteración del orden"),
   },
   {
-    id: 5, titulo: "Tardanza", fecha: "01/05/2025",
+    id: 5, titulo: "Tardanza", fecha: "2025-05-01T08:45:23",
     profesor: "Prof. Torres", descripcion: "Llegó tarde por segunda vez en el mes.",
     estado: "NO_LEIDA", nombre_alumno: "Mia Auditore Firenze",
     ...ObtenerIconxTitulo("Tardanza"),
   },
   {
-    id: 6, titulo: "Alteración del orden", fecha: "28/04/2025",
+    id: 6, titulo: "Alteración del orden", fecha: "2025-04-28T14:28:13",
     profesor: "Prof. García", descripcion: "Usó el celular durante el examen.",
     estado: "NO_LEIDA", nombre_alumno: "Mia Auditore Firenze",
     ...ObtenerIconxTitulo("Alteración del orden"),
@@ -91,13 +100,13 @@ export const MOCK_INCIDENCIAS_HIJO_1: Incidencia[] = [
 
 export const MOCK_INCIDENCIAS_HIJO_2: Incidencia[] = [
   {
-    id: 1, titulo: "Tardanza", fecha: "11/05/2025",
+    id: 7, titulo: "Tardanza", fecha: "2025-05-11T08:23:45",
     profesor: "Prof. Lara", descripcion: "Segunda tardanza consecutiva.",
     estado: "NO_LEIDA", nombre_alumno: "Ezio Auditore Firenze",
      ...ObtenerIconxTitulo("Tardanza"),
   },
   {
-    id: 2, titulo: "Incidencia Médica", fecha: "09/05/2025",
+    id: 8, titulo: "Incidencia Médica", fecha: "2025-05-09T13:12:33",
     profesor: "Prof. Ríos", descripcion: "Dolor de cabeza durante matemáticas.",
     estado: "NO_LEIDA", nombre_alumno: "Ezio Auditore Firenze",
      ...ObtenerIconxTitulo("Incidencia Médica"),

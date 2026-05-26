@@ -2,6 +2,7 @@
 import { COLORS, ThemedText } from "@/shared";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Pressable, View, StyleSheet } from "react-native";
+import { formatFecha } from "../mockIncidencias";
 
 //tipo de los props, define q datos necesita el componente para funcionar
 //icono(?, titulo, fecha, profesor, descripcion, estado leido no leido, nombre alumno
@@ -16,10 +17,18 @@ export type CardInciDashProps = {
     fecha: string; //cambiar
     profesor: string;
     descripcion: string;
-    estado: string; //boolean? cambiar
+    estado: "NO_LEIDA" | "LEIDA"; //boolean? cambiar
     nombre_alumno: string;
     onPress?: () => void; //no devuelve nada 
     
+};
+
+function ObtenerShadowxStatus(estado: "NO_LEIDA" | "LEIDA"): string {
+  return estado === "NO_LEIDA" ? "rgb(49, 130, 200)" : COLORS.onSurfaceVariant;
+}
+
+function ObtenerBorderxStatus(estado: "NO_LEIDA" | "LEIDA"): string {
+  return estado === "NO_LEIDA" ? "rgb(49, 130, 200)" : COLORS.onSurfaceVariant;
 }
 
 export default function CardInciDash({icon, iconbgcolor, iconcolor, titulo, fecha,
@@ -27,7 +36,8 @@ export default function CardInciDash({icon, iconbgcolor, iconcolor, titulo, fech
         //desestructuracion de props, verifica q se usen todos los props al usarlo
     return(
         <Pressable onPress={onPress} style={({pressed}) => [styles.cardContenido, 
-            { borderLeftColor: estado, borderRightColor: estado}, pressed && 
+            { borderLeftColor: ObtenerBorderxStatus(estado), 
+              borderRightColor: ObtenerBorderxStatus(estado)}, pressed && 
             styles.cardContenidoPressed
         ]}>
             <View style={styles.cardColumnContenido}> 
@@ -46,7 +56,7 @@ export default function CardInciDash({icon, iconbgcolor, iconcolor, titulo, fech
                         </ThemedText>
 
                         <ThemedText type="body" color="onSurfaceVariant" style={styles.cardHeaderprof}>
-                            {profesor} ⤷ {fecha}
+                            {profesor} ⤷ {formatFecha(fecha)}
                         </ThemedText>
 
                     </View>
@@ -147,6 +157,7 @@ const styles = StyleSheet.create({
   cardDesc: {
     flexDirection: 'column',
     marginBottom: 3,
+    width: '100%',
 
   },
   cardDescDesc: {
