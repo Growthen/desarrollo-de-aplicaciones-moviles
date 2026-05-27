@@ -1,13 +1,45 @@
-import React from "react";
-import { StyleSheet, View, Text, ScrollView, Pressable, Image, SafeAreaView, Platform, StatusBar } from "react-native";
+import React, { useState, useEffect } from "react";
+import { StyleSheet, View, Text, ScrollView, Pressable, Image, SafeAreaView, Platform, StatusBar, ActivityIndicator } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { COLORS } from "@/shared";
 import useAuth from "@/features/auth/hooks/useAuth";
 import { useNavigation } from "@react-navigation/native";
+import api from "@/features/auth/services/auth";
 
 export default function CoordinadorScreen() {
   const { user } = useAuth();
   const navigation = useNavigation<any>();
+  const [metrics, setMetrics] = useState({
+    students: 0,
+    teachers: 0,
+    parents: 0,
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchMetrics = async () => {
+      try {
+        setLoading(true);
+        const [studentsRes, teachersRes, parentsRes] = await Promise.all([
+          api.get("/api/students"),
+          api.get("/api/users/teachers"),
+          api.get("/api/users/parents"),
+        ]);
+
+        setMetrics({
+          students: studentsRes.data?.data ? studentsRes.data.data.length : 0,
+          teachers: teachersRes.data?.data ? teachersRes.data.data.length : 0,
+          parents: parentsRes.data?.data ? parentsRes.data.data.length : 0,
+        });
+      } catch (error) {
+        console.error("Error fetching coordinator metrics:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMetrics();
+  }, []);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -42,7 +74,11 @@ export default function CoordinadorScreen() {
             <View style={styles.metricCardContent}>
               <View>
                 <Text style={styles.metricLabel}>ALUMNOS MATRICULADOS</Text>
-                <Text style={styles.metricValueLarge}>1,204</Text>
+                {loading ? (
+                  <ActivityIndicator size="small" color={COLORS.primary} style={{ marginTop: 8, alignSelf: 'flex-start' }} />
+                ) : (
+                  <Text style={styles.metricValueLarge}>{metrics.students}</Text>
+                )}
               </View>
               <View style={[styles.metricIconContainer, { backgroundColor: COLORS.primaryContainer }]}>
                 <MaterialIcons name="groups" size={28} color={COLORS.onPrimaryContainer} />
@@ -58,7 +94,11 @@ export default function CoordinadorScreen() {
                 <MaterialIcons name="school" size={20} color={COLORS.onSecondaryContainer} />
               </View>
               <View style={{ flex: 1, marginLeft: 16 }}>
-                <Text style={styles.metricValueSmall}>86</Text>
+                {loading ? (
+                  <ActivityIndicator size="small" color={COLORS.secondary} style={{ alignSelf: 'flex-start' }} />
+                ) : (
+                  <Text style={styles.metricValueSmall}>{metrics.teachers}</Text>
+                )}
                 <Text style={styles.metricLabel}>PROFESORES ACTIVOS</Text>
               </View>
             </View>
@@ -72,7 +112,11 @@ export default function CoordinadorScreen() {
                 <MaterialIcons name="family-restroom" size={20} color={COLORS.onTertiaryContainer} />
               </View>
               <View style={{ flex: 1, marginLeft: 16 }}>
-                <Text style={styles.metricValueSmall}>312</Text>
+                {loading ? (
+                  <ActivityIndicator size="small" color={COLORS.onTertiaryContainer} style={{ alignSelf: 'flex-start' }} />
+                ) : (
+                  <Text style={styles.metricValueSmall}>{metrics.parents}</Text>
+                )}
                 <Text style={styles.metricLabel}>PADRES ACTIVOS</Text>
               </View>
             </View>
