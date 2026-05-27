@@ -27,8 +27,15 @@ export default function CrearCursoScreen() {
         setLoading(false);
       }
     };
+
+    const unsubscribe = navigation.addListener("focus", () => {
+      fetchTeachers();
+    });
+
     fetchTeachers();
-  }, []);
+
+    return unsubscribe;
+  }, [navigation]);
 
   const selectedTeacherName = teachers.find(t => t.id === selectedTeacherId)?.name || "";
 

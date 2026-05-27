@@ -38,8 +38,14 @@ export default function CoordinadorScreen() {
       }
     };
 
+    const unsubscribe = navigation.addListener("focus", () => {
+      fetchMetrics();
+    });
+
     fetchMetrics();
-  }, []);
+
+    return unsubscribe;
+  }, [navigation]);
 
   return (
     <SafeAreaView style={styles.safeArea}>

@@ -86,7 +86,7 @@ export default function CursosScreen() {
           <View style={styles.cardsContainer}>
             {courses.length === 0 ? (
               <View style={{ padding: 32, alignItems: 'center' }}>
-                <MaterialIcons name="book-off" size={48} color={COLORS.onSurfaceVariant} />
+                <MaterialIcons name="menu-book" size={48} color={COLORS.onSurfaceVariant} />
                 <Text style={{ marginTop: 16, color: COLORS.onSurfaceVariant, fontSize: 16, fontWeight: '600', textAlign: 'center' }}>
                   No hay cursos registrados todavía
                 </Text>
