@@ -65,6 +65,11 @@ export default function AsignarAlumnosScreen() {
       return;
     }
 
+    if (selectedIds.length === 0) {
+      Alert.alert("Error", "Debe seleccionar al menos un alumno para matricular en este curso.");
+      return;
+    }
+
     try {
       setSaving(true);
       if (courseId) {
