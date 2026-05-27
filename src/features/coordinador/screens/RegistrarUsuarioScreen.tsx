@@ -30,8 +30,24 @@ export default function RegistrarUsuarioScreen() {
         console.error("Error fetching parents:", error);
       }
     };
+
+    const unsubscribe = navigation.addListener("focus", () => {
+      // Fetch parents to get the latest list in real-time
+      fetchParents();
+      // Reset form states so that it starts clean on every new entry
+      setFullName("");
+      setDni("");
+      setEmail("");
+      setPassword("");
+      setRole("padre");
+      setSelectedParentId(null);
+      setShowParentDropdown(false);
+    });
+
     fetchParents();
-  }, []);
+
+    return unsubscribe;
+  }, [navigation]);
 
   const handleSave = async () => {
     if (!fullName.trim() || !dni.trim()) {
