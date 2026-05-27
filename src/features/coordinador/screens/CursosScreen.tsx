@@ -1,159 +1,149 @@
-import React, { useState } from "react";
-import { StyleSheet, View, Text, ScrollView, Pressable, Image, SafeAreaView, Platform, StatusBar, Switch } from "react-native";
+import React, { useState, useEffect } from "react";
+import { StyleSheet, View, Text, ScrollView, Pressable, Image, SafeAreaView, Platform, StatusBar, Switch, ActivityIndicator } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { COLORS } from "@/shared";
 import { useNavigation } from "@react-navigation/native";
+import api from "@/features/auth/services/auth";
 
 export default function CursosScreen() {
   const navigation = useNavigation<any>();
-  // Dummy state for the toggle switches
-  const [activeCourse1, setActiveCourse1] = useState(true);
-  const [activeCourse2, setActiveCourse2] = useState(true);
-  const [activeCourse3, setActiveCourse3] = useState(false);
+  const [courses, setCourses] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeStates, setActiveStates] = useState<Record<number, boolean>>({});
+
+  const fetchCourses = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get("/api/classes");
+      if (res.data?.data) {
+        setCourses(res.data.data);
+        // Initialize all fetched courses as active in the UI
+        const states: Record<number, boolean> = {};
+        res.data.data.forEach((c: any) => {
+          states[c.id] = true;
+        });
+        setActiveStates(states);
+      }
+    } catch (error) {
+      console.error("Error fetching courses list:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    // Add listener to reload courses when focusing this screen
+    const unsubscribe = navigation.addListener("focus", () => {
+      fetchCourses();
+    });
+    fetchCourses();
+    return unsubscribe;
+  }, [navigation]);
+
+  const toggleCourse = (id: number) => {
+    setActiveStates(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.surface} />
       
-      {/* Header Mobile Only (Similar to Dashboard but mostly hidden since tabs are at the bottom) */}
+      {/* Header Mobile Only */}
       <View style={styles.header}>
         <Pressable style={styles.iconButton}>
           <MaterialIcons name="menu" size={24} color={COLORS.primary} />
         </Pressable>
-        <Text style={styles.headerTitle}>TRILCE</Text>
+        <Text style={headerTitleStyle(styles)}>TRILCE</Text>
         <View style={styles.profileIcon}>
           <MaterialIcons name="person" size={24} color={COLORS.primary} />
         </View>
       </View>
-
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Page Header Section */}
-        <View style={styles.pageHeader}>
-          <Text style={styles.title}>Cursos</Text>
-          <Text style={styles.subtitle}>Gestione su oferta académica y el profesorado asignado.</Text>
-          
-          <Pressable 
-            style={styles.primaryButton}
-            onPress={() => navigation.navigate('CoordinadorCrearCurso')}
-          >
-            <MaterialIcons name="add" size={20} color={COLORS.onPrimary} />
-            <Text style={styles.primaryButtonText}>Crear Nuevo Curso</Text>
-          </Pressable>
+ 
+      {loading ? (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color={COLORS.primary} />
         </View>
-
-        {/* Course Cards Grid */}
-        <View style={styles.cardsContainer}>
-          
-          {/* Card 1 */}
-          <View style={[styles.card, !activeCourse1 && styles.cardInactive]}>
-            <View style={[styles.cardIndicator, { backgroundColor: activeCourse1 ? COLORS.secondary : COLORS.surfaceVariant }]} />
+      ) : (
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          {/* Page Header Section */}
+          <View style={styles.pageHeader}>
+            <Text style={styles.title}>Cursos</Text>
+            <Text style={styles.subtitle}>Gestione su oferta académica y el profesorado asignado.</Text>
             
-            <View style={styles.cardHeader}>
-              <View style={[styles.statusBadge, { backgroundColor: activeCourse1 ? COLORS.primaryFixed : COLORS.surfaceContainerHigh }]}>
-                {activeCourse1 && <View style={[styles.statusDot, { backgroundColor: COLORS.primary }]} />}
-                <Text style={[styles.statusText, { color: activeCourse1 ? COLORS.onPrimaryFixed : COLORS.onSurfaceVariant }]}>
-                  {activeCourse1 ? "CURSO ACTIVO" : "INACTIVO"}
+            <Pressable 
+              style={styles.primaryButton}
+              onPress={() => navigation.navigate('CoordinadorCrearCurso')}
+            >
+              <MaterialIcons name="add" size={20} color={COLORS.onPrimary} />
+              <Text style={styles.primaryButtonText}>Crear Nuevo Curso</Text>
+            </Pressable>
+          </View>
+  
+          {/* Course Cards Grid */}
+          <View style={styles.cardsContainer}>
+            {courses.length === 0 ? (
+              <View style={{ padding: 32, alignItems: 'center' }}>
+                <MaterialIcons name="book-off" size={48} color={COLORS.onSurfaceVariant} />
+                <Text style={{ marginTop: 16, color: COLORS.onSurfaceVariant, fontSize: 16, fontWeight: '600', textAlign: 'center' }}>
+                  No hay cursos registrados todavía
                 </Text>
               </View>
-              <Switch 
-                value={activeCourse1} 
-                onValueChange={setActiveCourse1} 
-                trackColor={{ false: COLORS.surfaceVariant, true: COLORS.secondary }}
-                thumbColor="#ffffff"
-              />
-            </View>
-
-            <Text style={styles.courseTitle}>Matemáticas 101</Text>
-
-            <View style={styles.cardFooter}>
-              <Text style={styles.footerLabel}>Profesor Asignado</Text>
-              <View style={styles.teacherRow}>
-                <Image 
-                  source={{ uri: "https://lh3.googleusercontent.com/aida-public/AB6AXuBlmDx4g-MXGv8QrhUiUvYRfKgZKfXvNvihVJGRNOkzCePmggaEdHIDm2GhlV9u9D9pxUuPTS2NDEpGqZnzlcy8Gf5kDc6okA8Qge89Fdc5wK8RgmoSDveH65fFD4xR97mgCLJj2zILw6ROmNqqByxxJu8YfSFI3eEdKjrJnjGYoqDK-eiGCItHvPUXG2PfqlxqTQLtnSzGHStDXJHZMcFOR7gRtsZ1KYJ6_9rED1pGCdQobGh1uy-3mAkMKKqhAD2QBQPu9lftHGQ" }} 
-                  style={styles.teacherAvatar} 
-                />
-                <View>
-                  <Text style={styles.teacherName}>Dr. Roberto Silva</Text>
-                  <Text style={styles.teacherDept}>Departamento de Ciencias</Text>
-                </View>
-              </View>
-            </View>
+            ) : (
+              courses.map((course) => {
+                const isActive = !!activeStates[course.id];
+                return (
+                  <View key={course.id} style={[styles.card, !isActive && styles.cardInactive]}>
+                    <View style={[styles.cardIndicator, { backgroundColor: isActive ? COLORS.secondary : COLORS.surfaceVariant }]} />
+                    
+                    <View style={styles.cardHeader}>
+                      <View style={[styles.statusBadge, { backgroundColor: isActive ? COLORS.primaryFixed : COLORS.surfaceContainerHigh }]}>
+                        {isActive && <View style={[styles.statusDot, { backgroundColor: COLORS.primary }]} />}
+                        <Text style={[styles.statusText, { color: isActive ? COLORS.onPrimaryFixed : COLORS.onSurfaceVariant }]}>
+                          {isActive ? "CURSO ACTIVO" : "INACTIVO"}
+                        </Text>
+                      </View>
+                      <Switch 
+                        value={isActive} 
+                        onValueChange={() => toggleCourse(course.id)} 
+                        trackColor={{ false: COLORS.surfaceVariant, true: COLORS.secondary }}
+                        thumbColor="#ffffff"
+                      />
+                    </View>
+  
+                    <Text style={styles.courseTitle}>{course.name}</Text>
+  
+                    <View style={styles.cardFooter}>
+                      <Text style={styles.footerLabel}>Profesor Asignado</Text>
+                      <View style={styles.teacherRow}>
+                        <View style={[styles.teacherAvatar, { backgroundColor: COLORS.surfaceContainer, justifyContent: 'center', alignItems: 'center' }]}>
+                          <MaterialIcons name="person" size={20} color={COLORS.primary} />
+                        </View>
+                        <View>
+                          <Text style={styles.teacherName}>{course.teacherName || "Sin Asignar"}</Text>
+                          <Text style={styles.teacherDept}>Profesor del Curso</Text>
+                        </View>
+                      </View>
+                      
+                      <Text style={[styles.footerLabel, { marginTop: 12, marginBottom: 4 }]}>
+                        Alumnos Inscritos: {course.students ? course.students.length : 0}
+                      </Text>
+                    </View>
+                  </View>
+                );
+              })
+            )}
           </View>
-
-          {/* Card 2 */}
-          <View style={[styles.card, !activeCourse2 && styles.cardInactive]}>
-            <View style={[styles.cardIndicator, { backgroundColor: activeCourse2 ? COLORS.secondary : COLORS.surfaceVariant }]} />
-            
-            <View style={styles.cardHeader}>
-              <View style={[styles.statusBadge, { backgroundColor: activeCourse2 ? COLORS.primaryFixed : COLORS.surfaceContainerHigh }]}>
-                {activeCourse2 && <View style={[styles.statusDot, { backgroundColor: COLORS.primary }]} />}
-                <Text style={[styles.statusText, { color: activeCourse2 ? COLORS.onPrimaryFixed : COLORS.onSurfaceVariant }]}>
-                  {activeCourse2 ? "CURSO ACTIVO" : "INACTIVO"}
-                </Text>
-              </View>
-              <Switch 
-                value={activeCourse2} 
-                onValueChange={setActiveCourse2} 
-                trackColor={{ false: COLORS.surfaceVariant, true: COLORS.secondary }}
-                thumbColor="#ffffff"
-              />
-            </View>
-
-            <Text style={styles.courseTitle}>Literatura II</Text>
-
-            <View style={styles.cardFooter}>
-              <Text style={styles.footerLabel}>Profesor Asignado</Text>
-              <View style={styles.teacherRow}>
-                <Image 
-                  source={{ uri: "https://lh3.googleusercontent.com/aida-public/AB6AXuCdIzy5ZNJpv8BckeaE7y7gaZH7e1-uj_g0NYRdjG2wwE-OCo8xOozACx_Vbl14Y2or6SVyEzrQzfw42-iaRIJDpZkp5sVNY5HPenk1W4GxwESYWpG8v-hiY8d3yXaZktF5nOINATfrVHOKpIF1AAlhu7eyPos8uzK3LejD-qH1oukJY-kwN5Jd6xnnM7khHvK0Evw40hh1aae1RNIz8hpK2dDxOIktQvFGDU2DYT6G8QbgCAH8DnRkplyz3bIiAl4tX7KhFNOwtkY" }} 
-                  style={styles.teacherAvatar} 
-                />
-                <View>
-                  <Text style={styles.teacherName}>Dra. Elena Vargas</Text>
-                  <Text style={styles.teacherDept}>Facultad de Letras</Text>
-                </View>
-              </View>
-            </View>
-          </View>
-
-          {/* Card 3 (Inactive) */}
-          <View style={[styles.card, !activeCourse3 && styles.cardInactive]}>
-            <View style={[styles.cardIndicator, { backgroundColor: activeCourse3 ? COLORS.secondary : COLORS.surfaceVariant }]} />
-            
-            <View style={styles.cardHeader}>
-              <View style={[styles.statusBadge, { backgroundColor: activeCourse3 ? COLORS.primaryFixed : COLORS.surfaceContainerHigh }]}>
-                {activeCourse3 && <View style={[styles.statusDot, { backgroundColor: COLORS.primary }]} />}
-                <Text style={[styles.statusText, { color: activeCourse3 ? COLORS.onPrimaryFixed : COLORS.onSurfaceVariant }]}>
-                  {activeCourse3 ? "CURSO ACTIVO" : "INACTIVO"}
-                </Text>
-              </View>
-              <Switch 
-                value={activeCourse3} 
-                onValueChange={setActiveCourse3} 
-                trackColor={{ false: COLORS.surfaceVariant, true: COLORS.secondary }}
-                thumbColor="#ffffff"
-              />
-            </View>
-
-            <Text style={styles.courseTitle}>Historia Contemporánea</Text>
-
-            <View style={styles.cardFooter}>
-              <Text style={styles.footerLabel}>Profesor Asignado</Text>
-              <View style={styles.teacherRow}>
-                <View style={[styles.teacherAvatar, { backgroundColor: COLORS.surfaceContainer, justifyContent: 'center', alignItems: 'center' }]}>
-                  <MaterialIcons name="person" size={20} color={COLORS.onSurfaceVariant} />
-                </View>
-                <View>
-                  <Text style={[styles.teacherName, { color: COLORS.onSurfaceVariant, fontStyle: 'italic', fontWeight: '400' }]}>Pendiente de Asignación</Text>
-                </View>
-              </View>
-            </View>
-          </View>
-
-        </View>
-      </ScrollView>
+        </ScrollView>
+      )}
     </SafeAreaView>
   );
+}
+
+function headerTitleStyle(styles: any) {
+  return styles.headerTitle;
 }
 
 const styles = StyleSheet.create({

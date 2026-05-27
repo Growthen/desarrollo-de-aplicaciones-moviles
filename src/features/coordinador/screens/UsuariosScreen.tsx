@@ -1,23 +1,42 @@
-import React, { useState } from "react";
-import { StyleSheet, View, Text, TextInput, Pressable, ScrollView, SafeAreaView, Platform, StatusBar } from "react-native";
+import React, { useState, useEffect } from "react";
+import { StyleSheet, View, Text, TextInput, Pressable, ScrollView, SafeAreaView, Platform, StatusBar, ActivityIndicator } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { COLORS } from "@/shared";
 import { useNavigation } from "@react-navigation/native";
-
-const DUMMY_USERS = [
-  { id: '1', name: 'Laura Martínez', role: 'Profesor', date: '12 Oct 2023', initials: 'LM', isTeacher: true },
-  { id: '2', name: 'Carlos Gómez', role: 'Padre', date: '15 Oct 2023', initials: 'CG', isTeacher: false },
-  { id: '3', name: 'David Rodríguez', role: 'Profesor', date: '20 Oct 2023', initials: 'DR', isTeacher: true },
-  { id: '4', name: 'Ana Pérez', role: 'Padre', date: '22 Oct 2023', initials: 'AP', isTeacher: false },
-];
+import api from "@/features/auth/services/auth";
 
 export default function UsuariosScreen() {
   const navigation = useNavigation<any>();
   const [searchQuery, setSearchQuery] = useState("");
+  const [users, setUsers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredUsers = DUMMY_USERS.filter(u => 
-    u.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    u.role.toLowerCase().includes(searchQuery.toLowerCase())
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get("/api/users");
+      if (res.data?.data) {
+        setUsers(res.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching users directory:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const getInitials = (name: string) => {
+    if (!name) return "U";
+    return name.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase();
+  };
+
+  const filteredUsers = users.filter(u => 
+    (u.name && u.name.toLowerCase().includes(searchQuery.toLowerCase())) || 
+    (u.role && u.role.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   return (
@@ -55,40 +74,60 @@ export default function UsuariosScreen() {
         </View>
 
         {/* Directory Grid */}
-        <ScrollView style={styles.listContainer} contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false}>
-          {filteredUsers.map((user) => (
-            <Pressable key={user.id} style={styles.userCard}>
-              <View style={[styles.cardIndicator, { backgroundColor: user.isTeacher ? COLORS.secondary : COLORS.primary }]} />
-              
-              <View style={styles.cardContent}>
-                <View style={styles.userInfo}>
-                  <View style={styles.avatar}>
-                    <Text style={styles.avatarText}>{user.initials}</Text>
-                  </View>
-                  <View style={styles.userDetails}>
-                    <Text style={styles.userName}>{user.name}</Text>
-                    <View style={styles.dateRow}>
-                      <MaterialIcons name="calendar-today" size={14} color={COLORS.onSurfaceVariant} />
-                      <Text style={styles.dateText}>Creado el {user.date}</Text>
+        {loading ? (
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <ActivityIndicator size="large" color={COLORS.primary} />
+          </View>
+        ) : filteredUsers.length === 0 ? (
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 }}>
+            <MaterialIcons name="person-off" size={48} color={COLORS.onSurfaceVariant} />
+            <Text style={{ marginTop: 16, fontSize: 16, color: COLORS.onSurfaceVariant, fontWeight: '600', textAlign: 'center' }}>
+              No se encontraron usuarios
+            </Text>
+          </View>
+        ) : (
+          <ScrollView style={styles.listContainer} contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false}>
+            {filteredUsers.map((user) => {
+              const isTeacher = user.role === "PROFESOR";
+              return (
+                <Pressable key={user.id} style={styles.userCard}>
+                  <View style={[styles.cardIndicator, { backgroundColor: isTeacher ? COLORS.secondary : COLORS.primary }]} />
+                  
+                  <View style={styles.cardContent}>
+                    <View style={styles.userInfo}>
+                      <View style={styles.avatar}>
+                        <Text style={styles.avatarText}>{getInitials(user.name)}</Text>
+                      </View>
+                      <View style={styles.userDetails}>
+                        <Text style={styles.userName}>{user.name}</Text>
+                        <View style={styles.dateRow}>
+                          <MaterialIcons name="badge" size={14} color={COLORS.onSurfaceVariant} />
+                          <Text style={styles.dateText}>DNI: {user.dni}</Text>
+                        </View>
+                        <View style={[styles.dateRow, { marginTop: 2 }]}>
+                          <MaterialIcons name="email" size={14} color={COLORS.onSurfaceVariant} />
+                          <Text style={styles.dateText} numberOfLines={1}>{user.email}</Text>
+                        </View>
+                      </View>
+                    </View>
+                    
+                    <View style={[
+                      styles.roleBadge, 
+                      { backgroundColor: isTeacher ? COLORS.secondaryContainer : COLORS.primaryFixed }
+                    ]}>
+                      <Text style={[
+                        styles.roleBadgeText, 
+                        { color: isTeacher ? COLORS.onSecondaryContainer : COLORS.onPrimaryFixed }
+                      ]}>
+                        {user.role}
+                      </Text>
                     </View>
                   </View>
-                </View>
-                
-                <View style={[
-                  styles.roleBadge, 
-                  { backgroundColor: user.isTeacher ? COLORS.secondaryContainer : COLORS.primaryFixed }
-                ]}>
-                  <Text style={[
-                    styles.roleBadgeText, 
-                    { color: user.isTeacher ? COLORS.onSecondaryContainer : COLORS.onPrimaryFixed }
-                  ]}>
-                    {user.role}
-                  </Text>
-                </View>
-              </View>
-            </Pressable>
-          ))}
-        </ScrollView>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        )}
       </View>
 
       {/* Floating Action Button (FAB) */}

@@ -1,13 +1,93 @@
-import React, { useState } from "react";
-import { StyleSheet, View, Text, TextInput, Pressable, ScrollView, SafeAreaView, Platform, StatusBar, KeyboardAvoidingView } from "react-native";
+import React, { useState, useEffect } from "react";
+import { StyleSheet, View, Text, TextInput, Pressable, ScrollView, SafeAreaView, Platform, StatusBar, KeyboardAvoidingView, ActivityIndicator, Alert } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { COLORS } from "@/shared";
 import { useNavigation } from "@react-navigation/native";
+import api from "@/features/auth/services/auth";
 
 export default function RegistrarUsuarioScreen() {
   const navigation = useNavigation<any>();
   const [role, setRole] = useState<"padre" | "profesor" | "alumno">("padre");
   const [showPassword, setShowPassword] = useState(false);
+
+  const [fullName, setFullName] = useState("");
+  const [dni, setDni] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [parents, setParents] = useState<any[]>([]);
+  const [selectedParentId, setSelectedParentId] = useState<number | null>(null);
+  const [showParentDropdown, setShowParentDropdown] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    const fetchParents = async () => {
+      try {
+        const res = await api.get("/api/users/parents");
+        if (res.data?.data) {
+          setParents(res.data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching parents:", error);
+      }
+    };
+    fetchParents();
+  }, []);
+
+  const handleSave = async () => {
+    if (!fullName.trim() || !dni.trim()) {
+      Alert.alert("Error", "Nombre Completo y DNI son campos obligatorios");
+      return;
+    }
+
+    if (dni.trim().length !== 8) {
+      Alert.alert("Error", "El DNI debe tener 8 dígitos");
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      if (role === "alumno") {
+        if (!selectedParentId) {
+          Alert.alert("Error", "Debe vincular un padre o madre para registrar un alumno");
+          return;
+        }
+
+        // Split name into first and last name
+        const parts = fullName.trim().split(" ");
+        const firstName = parts[0] || "";
+        const lastName = parts.slice(1).join(" ") || "Pérez";
+
+        await api.post("/api/students", {
+          firstName,
+          lastName,
+          dni,
+          parentId: selectedParentId,
+        });
+      } else {
+        if (!email.trim() || !password.trim()) {
+          Alert.alert("Error", "Correo y contraseña son obligatorios");
+          return;
+        }
+
+        await api.post("/api/users", {
+          email,
+          name: fullName,
+          dni,
+          password,
+          role: role === "padre" ? "PADRE" : "PROFESOR",
+        });
+      }
+
+      Alert.alert("Éxito", "Usuario registrado correctamente", [
+        { text: "OK", onPress: () => navigation.goBack() }
+      ]);
+    } catch (error: any) {
+      const errMsg = error.response?.data?.message || "Ocurrió un error al registrar el usuario";
+      Alert.alert("Error", errMsg);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -51,6 +131,8 @@ export default function RegistrarUsuarioScreen() {
                   style={styles.input}
                   placeholder="Ej. Juan Pérez"
                   placeholderTextColor="rgba(91, 64, 56, 0.5)"
+                  value={fullName}
+                  onChangeText={setFullName}
                 />
               </View>
 
@@ -61,57 +143,96 @@ export default function RegistrarUsuarioScreen() {
                   placeholder="Número de documento"
                   placeholderTextColor="rgba(91, 64, 56, 0.5)"
                   keyboardType="numeric"
+                  value={dni}
+                  onChangeText={setDni}
+                  maxLength={8}
                 />
               </View>
             </View>
 
-            {/* Account Info Block */}
-            <View style={styles.blockContainer}>
-              <Text style={styles.blockTitle}>Datos de Acceso</Text>
-              
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Nombre de usuario</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="nombre.apellido"
-                  placeholderTextColor="rgba(91, 64, 56, 0.5)"
-                  autoCapitalize="none"
-                />
-              </View>
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Correo electrónico</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="correo@ejemplo.com"
-                  placeholderTextColor="rgba(91, 64, 56, 0.5)"
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                />
-              </View>
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Contraseña</Text>
-                <View style={styles.passwordContainer}>
-                  <TextInput
-                    style={styles.passwordInput}
-                    placeholder="••••••••"
-                    placeholderTextColor="rgba(91, 64, 56, 0.5)"
-                    secureTextEntry={!showPassword}
-                  />
+            {/* Parent Association Block for Alumnos */}
+            {role === "alumno" && (
+              <View style={styles.blockContainer}>
+                <Text style={styles.blockTitle}>Vincular Padre/Madre</Text>
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Seleccionar Padre</Text>
                   <Pressable 
-                    style={styles.visibilityIcon}
-                    onPress={() => setShowPassword(!showPassword)}
+                    style={styles.inputContainerDropdown}
+                    onPress={() => setShowParentDropdown(!showParentDropdown)}
                   >
-                    <MaterialIcons 
-                      name={showPassword ? "visibility-off" : "visibility"} 
-                      size={20} 
-                      color={COLORS.onSurfaceVariant} 
-                    />
+                    <Text style={[styles.inputText, !selectedParentId && styles.placeholderText]}>
+                      {selectedParentId 
+                        ? parents.find(p => p.id === selectedParentId)?.name 
+                        : "Seleccionar un padre de familia"}
+                    </Text>
+                    <MaterialIcons name="keyboard-arrow-down" size={24} color={COLORS.onSurfaceVariant} />
                   </Pressable>
+                  
+                  {showParentDropdown && (
+                    <View style={styles.dropdownList}>
+                      <ScrollView nestedScrollEnabled={true} style={{ maxHeight: 150 }}>
+                        {parents.map((p) => (
+                          <Pressable 
+                            key={p.id} 
+                            style={styles.dropdownItem}
+                            onPress={() => {
+                              setSelectedParentId(p.id);
+                              setShowParentDropdown(false);
+                            }}
+                          >
+                            <Text style={styles.dropdownItemText}>{p.name} (DNI: {p.dni})</Text>
+                          </Pressable>
+                        ))}
+                      </ScrollView>
+                    </View>
+                  )}
                 </View>
               </View>
-            </View>
+            )}
+
+            {/* Account Info Block (Only for Padres and Profesores) */}
+            {role !== "alumno" && (
+              <View style={styles.blockContainer}>
+                <Text style={styles.blockTitle}>Datos de Acceso</Text>
+                
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Correo electrónico</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="correo@ejemplo.com"
+                    placeholderTextColor="rgba(91, 64, 56, 0.5)"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    value={email}
+                    onChangeText={setEmail}
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Contraseña</Text>
+                  <View style={styles.passwordContainer}>
+                    <TextInput
+                      style={styles.passwordInput}
+                      placeholder="••••••••"
+                      placeholderTextColor="rgba(91, 64, 56, 0.5)"
+                      secureTextEntry={!showPassword}
+                      value={password}
+                      onChangeText={setPassword}
+                    />
+                    <Pressable 
+                      style={styles.visibilityIcon}
+                      onPress={() => setShowPassword(!showPassword)}
+                    >
+                      <MaterialIcons 
+                        name={showPassword ? "visibility-off" : "visibility"} 
+                        size={20} 
+                        color={COLORS.onSurfaceVariant} 
+                      />
+                    </Pressable>
+                  </View>
+                </View>
+              </View>
+            )}
 
             {/* Role Selector Block */}
             <View style={styles.blockContainer}>
@@ -163,13 +284,17 @@ export default function RegistrarUsuarioScreen() {
             <View style={styles.actionContainer}>
               <Pressable 
                 style={styles.saveButton}
-                onPress={() => {
-                  // TODO: Save user and navigate back
-                  navigation.goBack();
-                }}
+                onPress={handleSave}
+                disabled={submitting}
               >
-                <MaterialIcons name="save" size={20} color={COLORS.onPrimary} />
-                <Text style={styles.saveButtonText}>Guardar Usuario</Text>
+                {submitting ? (
+                  <ActivityIndicator size="small" color={COLORS.onPrimary} />
+                ) : (
+                  <>
+                    <MaterialIcons name="save" size={20} color={COLORS.onPrimary} />
+                    <Text style={styles.saveButtonText}>Guardar Usuario</Text>
+                  </>
+                )}
               </Pressable>
             </View>
 
@@ -338,5 +463,41 @@ const styles = StyleSheet.create({
     color: COLORS.onPrimary,
     fontSize: 14,
     fontWeight: "600",
+  },
+  inputContainerDropdown: {
+    backgroundColor: COLORS.surfaceContainerLowest,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "rgba(228, 190, 178, 0.2)",
+    padding: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  inputText: {
+    fontSize: 16,
+    color: COLORS.onSurface,
+  },
+  placeholderText: {
+    color: "rgba(91, 64, 56, 0.5)",
+  },
+  dropdownList: {
+    backgroundColor: COLORS.surfaceContainerLowest,
+    borderWidth: 1,
+    borderColor: "rgba(228, 190, 178, 0.2)",
+    borderRadius: 8,
+    marginTop: 4,
+    padding: 8,
+    zIndex: 100,
+  },
+  dropdownItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(228, 190, 178, 0.1)",
+  },
+  dropdownItemText: {
+    fontSize: 14,
+    color: COLORS.onSurface,
   },
 });

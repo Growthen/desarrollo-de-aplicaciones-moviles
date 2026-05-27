@@ -1,14 +1,36 @@
-import React, { useState } from "react";
-import { StyleSheet, View, Text, TextInput, Pressable, ScrollView, SafeAreaView, Platform, StatusBar, KeyboardAvoidingView } from "react-native";
+import React, { useState, useEffect } from "react";
+import { StyleSheet, View, Text, TextInput, Pressable, ScrollView, SafeAreaView, Platform, StatusBar, KeyboardAvoidingView, Alert, ActivityIndicator } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { COLORS } from "@/shared";
 import { useNavigation } from "@react-navigation/native";
+import api from "@/features/auth/services/auth";
 
 export default function CrearCursoScreen() {
   const navigation = useNavigation<any>();
   const [courseName, setCourseName] = useState("");
-  // Simple state for placeholder dropdown
-  const [teacher, setTeacher] = useState("");
+  const [teachers, setTeachers] = useState<any[]>([]);
+  const [selectedTeacherId, setSelectedTeacherId] = useState<number | null>(null);
+  const [showTeacherDropdown, setShowTeacherDropdown] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTeachers = async () => {
+      try {
+        setLoading(true);
+        const res = await api.get("/api/users/teachers");
+        if (res.data?.data) {
+          setTeachers(res.data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching teachers:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTeachers();
+  }, []);
+
+  const selectedTeacherName = teachers.find(t => t.id === selectedTeacherId)?.name || "";
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -25,7 +47,7 @@ export default function CrearCursoScreen() {
         <Text style={styles.headerTitle}>TRILCE</Text>
         <View style={{ width: 40 }} />
       </View>
-
+      
       <KeyboardAvoidingView 
         style={{ flex: 1 }} 
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -42,12 +64,12 @@ export default function CrearCursoScreen() {
               <View style={[styles.progressBar, { backgroundColor: COLORS.surfaceVariant }]} />
             </View>
           </View>
-
+          
           {/* Form Section */}
           <View style={styles.formSection}>
             {/* Abstract Background Element (Simulated with absolute positioning) */}
             <View style={styles.decorativeCircle} />
-
+            
             {/* Course Name Input */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Nombre del curso</Text>
@@ -61,27 +83,64 @@ export default function CrearCursoScreen() {
                 />
               </View>
             </View>
-
-            {/* Teacher Select (Placeholder) */}
+            
+            {/* Teacher Select */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Asignar Profesor</Text>
-              <Pressable style={styles.inputContainer}>
-                <Text style={[styles.inputText, !teacher && styles.placeholderText]}>
-                  {teacher || "Seleccionar profesor"}
-                </Text>
-                <MaterialIcons name="keyboard-arrow-down" size={24} color={COLORS.onSurfaceVariant} style={styles.dropdownIcon} />
-              </Pressable>
+              {loading ? (
+                <ActivityIndicator size="small" color={COLORS.primary} style={{ alignSelf: 'flex-start' }} />
+              ) : (
+                <Pressable 
+                  style={styles.inputContainer}
+                  onPress={() => setShowTeacherDropdown(!showTeacherDropdown)}
+                >
+                  <Text style={[styles.inputText, !selectedTeacherId && styles.placeholderText]}>
+                    {selectedTeacherName || "Seleccionar profesor"}
+                  </Text>
+                  <MaterialIcons name="keyboard-arrow-down" size={24} color={COLORS.onSurfaceVariant} style={styles.dropdownIcon} />
+                </Pressable>
+              )}
+              
+              {showTeacherDropdown && (
+                <View style={styles.dropdownList}>
+                  <ScrollView nestedScrollEnabled={true} style={{ maxHeight: 150 }}>
+                    {teachers.map((t) => (
+                      <Pressable 
+                        key={t.id} 
+                        style={styles.dropdownItem}
+                        onPress={() => {
+                          setSelectedTeacherId(t.id);
+                          setShowTeacherDropdown(false);
+                        }}
+                      >
+                        <Text style={styles.dropdownItemText}>{t.name} (DNI: {t.dni})</Text>
+                      </Pressable>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
             </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-
+      
       {/* Fixed Bottom Action Area */}
       <View style={styles.bottomActionArea}>
         <Pressable 
           style={styles.primaryButton}
           onPress={() => {
-            navigation.navigate('CoordinadorAsignarAlumnos');
+            if (!courseName.trim()) {
+              Alert.alert("Error", "Debe ingresar el nombre del curso");
+              return;
+            }
+            if (!selectedTeacherId) {
+              Alert.alert("Error", "Debe seleccionar un profesor");
+              return;
+            }
+            navigation.navigate('CoordinadorAsignarAlumnos', {
+              courseName,
+              teacherId: selectedTeacherId
+            });
           }}
         >
           <Text style={styles.primaryButtonText}>Siguiente: Asignar Alumnos</Text>
@@ -233,5 +292,24 @@ const styles = StyleSheet.create({
     color: COLORS.onPrimary,
     fontSize: 14,
     fontWeight: "600",
+  },
+  dropdownList: {
+    backgroundColor: COLORS.surfaceContainerLowest,
+    borderWidth: 1,
+    borderColor: "rgba(228, 190, 178, 0.2)",
+    borderRadius: 8,
+    marginTop: 4,
+    padding: 8,
+    zIndex: 100,
+  },
+  dropdownItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(228, 190, 178, 0.1)",
+  },
+  dropdownItemText: {
+    fontSize: 14,
+    color: COLORS.onSurface,
   },
 });
