@@ -127,9 +127,24 @@ export default function CursosScreen() {
                         </View>
                       </View>
                       
-                      <Text style={[styles.footerLabel, { marginTop: 12, marginBottom: 4 }]}>
+                      <Text style={[styles.footerLabel, { marginTop: 12, marginBottom: 8 }]}>
                         Alumnos Inscritos: {course.students ? course.students.length : 0}
                       </Text>
+                      <Pressable 
+                        style={styles.enrollButton}
+                        onPress={() => {
+                          const studentIds = course.students ? course.students.map((s: any) => s.id) : [];
+                          navigation.navigate('CoordinadorAsignarAlumnos', {
+                            courseName: course.name,
+                            teacherId: course.teacherId,
+                            courseId: course.id,
+                            existingStudentIds: studentIds
+                          });
+                        }}
+                      >
+                        <MaterialIcons name="person-add" size={16} color={COLORS.secondary} />
+                        <Text style={styles.enrollButtonText}>Gestionar Alumnos</Text>
+                      </Pressable>
                     </View>
                   </View>
                 );
@@ -307,5 +322,21 @@ const styles = StyleSheet.create({
   teacherDept: {
     fontSize: 12,
     color: COLORS.tertiary,
+  },
+  enrollButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: COLORS.secondaryContainer,
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    marginTop: 8,
+    gap: 8,
+  },
+  enrollButtonText: {
+    color: COLORS.onSecondaryContainer,
+    fontSize: 14,
+    fontWeight: "600",
   },
 });

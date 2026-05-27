@@ -8,7 +8,7 @@ import api from "@/features/auth/services/auth";
 export default function AsignarAlumnosScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
-  const { courseName, teacherId } = route.params || {};
+  const { courseName, teacherId, courseId, existingStudentIds } = route.params || {};
 
   const [searchQuery, setSearchQuery] = useState("");
   const [students, setStudents] = useState<any[]>([]);
@@ -34,6 +34,14 @@ export default function AsignarAlumnosScreen() {
     fetchStudents();
   }, []);
 
+  useEffect(() => {
+    if (existingStudentIds) {
+      setSelectedIds(existingStudentIds);
+    } else {
+      setSelectedIds([]);
+    }
+  }, [existingStudentIds]);
+
   const toggleStudent = (id: number) => {
     setSelectedIds(prev => 
       prev.includes(id) ? prev.filter(studentId => studentId !== id) : [...prev, id]
@@ -52,24 +60,40 @@ export default function AsignarAlumnosScreen() {
   });
 
   const handleSave = async () => {
-    if (!courseName || !teacherId) {
+    if (!courseName) {
       Alert.alert("Error", "Información del curso incompleta.");
       return;
     }
 
     try {
       setSaving(true);
-      await api.post("/api/classes", {
-        name: courseName,
-        teacherId: teacherId,
-        studentIds: selectedIds,
-      });
+      if (courseId) {
+        // Edit existing class student list
+        await api.put(`/api/classes/${courseId}/students`, {
+          studentIds: selectedIds,
+        });
 
-      Alert.alert("Éxito", "Curso creado e inscripciones registradas correctamente", [
-        { text: "OK", onPress: () => navigation.navigate("CursosScreenPlaceholder") }
-      ]);
+        Alert.alert("Éxito", "Matrícula de alumnos actualizada correctamente", [
+          { text: "OK", onPress: () => navigation.navigate("CursosScreenPlaceholder") }
+        ]);
+      } else {
+        // Create new class
+        if (!teacherId) {
+          Alert.alert("Error", "Debe asignar un profesor.");
+          return;
+        }
+        await api.post("/api/classes", {
+          name: courseName,
+          teacherId: teacherId,
+          studentIds: selectedIds,
+        });
+
+        Alert.alert("Éxito", "Curso creado e inscripciones registradas correctamente", [
+          { text: "OK", onPress: () => navigation.navigate("CursosScreenPlaceholder") }
+        ]);
+      }
     } catch (error: any) {
-      const errMsg = error.response?.data?.message || "Ocurrió un error al guardar el curso";
+      const errMsg = error.response?.data?.message || "Ocurrió un error al guardar las inscripciones";
       Alert.alert("Error", errMsg);
     } finally {
       setSaving(false);
