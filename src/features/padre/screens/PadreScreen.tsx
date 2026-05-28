@@ -7,12 +7,13 @@ import CardInciDash from "../components/CardInciDash";
 import { MOCK_HIJOS } from "../mockIncidencias";
 import type { Incidencia } from "../mockIncidencias";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import type { PadreHijosStackParams } from "../navigation/PadreHijosStack";
 import { PadreDashStackParams } from "../navigation/PadreDashStack";
+import { ObtenerHijos } from "../services/Student.service";
+import { ObtenerInciporEstudianteUI } from "../services/Incident.service";
 
 const card_inci_dash= 4;
 
@@ -21,11 +22,40 @@ export default function PadreScreen() {
   const truncateText = (text: string, maxLength: number): string => {
     return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
   };
+  //navigator
+  const nemonemo= useNavigation<NativeStackNavigationProp<PadreDashStackParams>>();
+
+  /* 
 
   //estado central, pruebas mock
   const [incixhijoD, setIncixHijoD] = useState<Record<number, Incidencia[]>>(
     () => Object.fromEntries(MOCK_HIJOS.map((h) => [h.id, h.inci]))
-  );
+  );*/
+  //ahora si backend, 
+  const [incixhijoD, setIncixHijoD] = useState<Record<number, Incidencia[]>>({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function loadDatos(){
+      try {
+        const dataHijosDash = await ObtenerHijos();
+        const inciMapeoDash: Record<number, Incidencia[]> = {};
+
+        await Promise.all(
+          dataHijosDash.map(async (hijoD) => {
+            inciMapeoDash[hijoD.id] = await ObtenerInciporEstudianteUI(hijoD.id);
+          }) 
+        );
+        setIncixHijoD(inciMapeoDash);
+      } catch {
+        setError("No se pudieron cargar los datos" )
+      }finally {
+        setLoading(false);
+      }
+    }
+    loadDatos();
+  }, [])
 
   //totales para los badges
   const inciTotalesD= Object.values(incixhijoD).flat();
@@ -33,11 +63,10 @@ export default function PadreScreen() {
   const solvedTotalD= inciTotalesD.filter((i) => i.estado === "LEIDA").length;
 
   //incidencias de todos, ordenadas por fecha descendente y cortadas a las primeras 4
-  const inciVisiDash= inciTotalesD.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())
+  const inciVisiDash= [...inciTotalesD].sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())
                       .slice(0, card_inci_dash);
 
-  //navigator
-  const nemonemo= useNavigation<NativeStackNavigationProp<PadreDashStackParams>>();
+  
 
   return (
     <View style={styles.root}>

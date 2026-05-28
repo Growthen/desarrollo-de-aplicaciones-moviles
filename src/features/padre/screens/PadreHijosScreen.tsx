@@ -146,7 +146,7 @@ export default function PadreHijosScreen(){
                                 pending_alum={pending}
                                 solved_alum={solved}
                                 inci={inciDeNHijo}
-                                totalhijos={MOCK_HIJOS.length}
+                                totalhijos={hijos.length}
                                 onEstadoCambiado={(inciId, nuevoStatus) => 
                                   handleStatusCambio(hijo.id, inciId, nuevoStatus)
                                 }
