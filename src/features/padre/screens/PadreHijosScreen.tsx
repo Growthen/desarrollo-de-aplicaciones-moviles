@@ -130,7 +130,7 @@ export default function PadreHijosScreen(){
 
                     {/*tarjetas dependiendo si son uno o dos hijos */}
                     <View style={styles.contHijos}>
-                        {MOCK_HIJOS.map((hijo) => {
+                        {hijos.map((hijo) => {
                           const inciDeNHijo= incixHijo[hijo.id] ?? [];
                           const pending= inciDeNHijo.filter((i) => i.estado === "NO_LEIDA").length;
                           const solved= inciDeNHijo.filter((i) => i.estado === "LEIDA").length;
@@ -140,9 +140,9 @@ export default function PadreHijosScreen(){
                                 icon="account-circle"
                                 iconbgcolor="rgba(167,51,0,0.1)"
                                 iconcolor={COLORS.primary}
-                                alum_nom={hijo.alum_nom}
-                                alum_grado={hijo.alum_grado}
-                                alum_code={hijo.alum_code}
+                                alum_nom={`${hijo.firstName} ${hijo.lastName}`}
+                                alum_grado=""
+                                alum_code={hijo.studentCode}
                                 pending_alum={pending}
                                 solved_alum={solved}
                                 inci={inciDeNHijo}

@@ -37,7 +37,8 @@ export default function CardInciDash({icon, iconbgcolor, iconcolor, titulo, fech
     return(
         <Pressable onPress={onPress} style={({pressed}) => [styles.cardContenido, 
             { borderLeftColor: ObtenerBorderxStatus(estado), 
-              borderRightColor: ObtenerBorderxStatus(estado)}, pressed && 
+              borderRightColor: ObtenerBorderxStatus(estado),
+              boxShadow: `0px 1px 4px ${ObtenerShadowxStatus(estado)}`}, pressed && 
             styles.cardContenidoPressed
         ]}>
             <View style={styles.cardColumnContenido}> 
