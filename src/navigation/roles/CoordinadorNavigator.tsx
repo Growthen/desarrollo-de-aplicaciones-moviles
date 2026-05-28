@@ -8,35 +8,20 @@ const Tab = createBottomTabNavigator();
 
 export default function CoordinadorNavigator() {
   return (
-    <Tab.Navigator 
-      screenOptions={{ 
-        headerShown: false,
-        tabBarActiveTintColor: COLORS.secondary,
-        tabBarInactiveTintColor: COLORS.onSurfaceVariant,
-        tabBarStyle: {
-          backgroundColor: COLORS.surfaceContainerLowest,
-          borderTopWidth: 0,
-          elevation: 10,
-          shadowColor: COLORS.onSurface,
-          shadowOffset: { width: 0, height: -4 },
-          shadowOpacity: 0.06,
-          shadowRadius: 16,
-        }
-      }}
-    >
-      <Tab.Screen 
-        name="CoordinadorDashboard" 
+    <Tab.Navigator screenOptions={{ headerShown: false }}>
+      <Tab.Screen
+        name="CoordinadorDashboard"
         component={CoordinadorScreen}
         options={{
           title: "Inicio",
           tabBarIcon: ({ color, size }) => (
             <MaterialIcons name="dashboard" size={size} color={color} />
           ),
-        }} 
+        }}
       />
-      <Tab.Screen 
-        name="CursosScreenPlaceholder" 
-        component={CursosScreen}
+      <Tab.Screen
+        name="CoodinadorCrearUsers"
+        component={CoordinadorScreen}
         options={{
           title: "Cursos",
           tabBarIcon: ({ color, size }) => (
@@ -44,9 +29,9 @@ export default function CoordinadorNavigator() {
           ),
         }}
       />
-      <Tab.Screen 
-        name="UsuariosScreenPlaceholder" 
-        component={UsuariosScreen}
+      <Tab.Screen
+        name="CoordinadorCrearCurso"
+        component={CoordinadorScreen}
         options={{
           title: "Usuarios",
           tabBarIcon: ({ color, size }) => (

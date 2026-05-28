@@ -1,22 +1,20 @@
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
-} from "react-native";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { COLORS, ThemedText } from "@/shared";
 import DataField from "@/shared/components/DataField";
 import ActionRow from "@/shared/components/ActionRow";
+import BiometricSwitch from "@/shared/components/BiometricSwitch";
 import useAuth from "@/features/auth/hooks/useAuth";
 import type { AuthRole } from "@/features/auth/types/auth.types";
 
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import {
+  createNativeStackNavigator,
+  NativeStackNavigationProp,
+} from "@react-navigation/native-stack";
 import PasswordRestoreScreen from "@/features/auth/screens/PasswordRestoreScreen";
 import EmailRestoreScreen from "@/features/auth/screens/EmailRestoreScreen";
 import { useNavigation } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 const ROLE_LABELS: Record<AuthRole, string> = {
   COORDINADOR: "Coordinador",
@@ -34,7 +32,8 @@ const Stack = createNativeStackNavigator<ConfigurationStackParamList>();
 
 function ConfigurationScreen() {
   const { user, logout } = useAuth();
-  const navigation = useNavigation<NativeStackNavigationProp<ConfigurationStackParamList>>();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<ConfigurationStackParamList>>();
 
   return (
     <View style={styles.root}>
@@ -44,11 +43,7 @@ function ConfigurationScreen() {
       >
         {/* ── Section Header ── */}
         <View style={styles.sectionHeader}>
-          <ThemedText
-            type="label"
-            color="primary"
-            style={styles.sectionTag}
-          >
+          <ThemedText type="label" color="primary" style={styles.sectionTag}>
             CONFIGURACIÓN DE USUARIO
           </ThemedText>
 
@@ -102,10 +97,7 @@ function ConfigurationScreen() {
               label="Código de Usuario"
               value={user?.username ?? "—"}
             />
-            <DataField
-              label="Correo Electrónico"
-              value={user?.email ?? "—"}
-            />
+            <DataField label="Correo Electrónico" value={user?.email ?? "—"} />
           </View>
         </View>
 
@@ -139,14 +131,7 @@ function ConfigurationScreen() {
             onPress={() => navigation.navigate("EmailRestore")}
           />
 
-          <ActionRow
-            icon="fingerprint"
-            iconBgColor={`${COLORS.tertiary}1A`}
-            iconColor={COLORS.tertiary}
-            accentColor={COLORS.tertiary}
-            title="Biometría Digital"
-            subtitle="Configura tu acceso seguro"
-          />
+          <BiometricSwitch />
         </View>
 
         {/* ── Logout Button ── */}
@@ -163,10 +148,7 @@ function ConfigurationScreen() {
               size={22}
               color={COLORS.onErrorContainer}
             />
-            <ThemedText
-              type="button"
-              color="onErrorContainer"
-            >
+            <ThemedText type="button" color="onErrorContainer">
               Cerrar Sesión
             </ThemedText>
           </Pressable>

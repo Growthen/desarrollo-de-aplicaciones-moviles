@@ -22,6 +22,11 @@ export type AuthContextType = {
   devLogin?: (role: AuthRole) => Promise<void>;
   isLoading: boolean;
   error: string | null;
+  isBiometricEnabled: boolean;
+  isBiometricAvailable: boolean;
+  needsBiometricUnlock: boolean;
+  toggleBiometric: () => Promise<boolean>;
+  unlockWithBiometrics: () => Promise<void>;
 };
 
 export const AuthContext = createContext<AuthContextType>(

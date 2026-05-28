@@ -21,13 +21,16 @@ export default function EmailRestoreScreen() {
   const [focusedField, setFocusedField] = useState<string | null>(null);
 
   return (
-    <SafeAreaView style={styles.root} edges={["top", "bottom"]}>
+    <SafeAreaView style={styles.root} edges={["bottom"]}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.surface} />
 
       {/* TopAppBar */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Pressable style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Pressable
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
             <MaterialIcons name="arrow-back" size={24} color={COLORS.primary} />
           </Pressable>
           <ThemedText
@@ -69,7 +72,11 @@ export default function EmailRestoreScreen() {
                 Correo Actual
               </ThemedText>
               <View style={styles.readOnlyEmailBox}>
-                <MaterialIcons name="email" size={20} color={COLORS.secondary} />
+                <MaterialIcons
+                  name="email"
+                  size={20}
+                  color={COLORS.secondary}
+                />
                 <ThemedText type="body" style={styles.currentEmailText}>
                   estudiante.trilce@universidad.edu.pe
                 </ThemedText>

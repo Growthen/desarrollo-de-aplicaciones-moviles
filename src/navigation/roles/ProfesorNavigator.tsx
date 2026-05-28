@@ -1,6 +1,7 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
-import { ProfesorScreen } from "@/features/profesor";
+import ProfesorStack from "@/features/profesor/navigation/ProfesorStack";
+import ProfesorCoursesStack from "@/features/profesor/navigation/ProfesorCoursesStack";
 import ConfigurationNavigator from "../components/ConfigurationNavigator";
 import { MaterialIcons } from "@expo/vector-icons";
 
@@ -9,14 +10,19 @@ const Tab = createBottomTabNavigator();
 export default function ProfesorNavigator() {
   return (
     <Tab.Navigator screenOptions={{ headerShown: false }}>
-      <Tab.Screen name="ProfesorDashboard" component={ProfesorScreen}
+      <Tab.Screen
+        name="ProfesorDashboard"
+        component={ProfesorStack}
         options={{
           title: "Dashboard",
           tabBarIcon: ({ color, size }) => (
             <MaterialIcons name="calendar-month" size={size} color={color} />
           ),
-        }} />
-      <Tab.Screen name="ProfesorClases" component={ProfesorScreen}
+        }}
+      />
+      <Tab.Screen
+        name="ProfesorClases"
+        component={ProfesorCoursesStack}
         options={{
           title: "Clases",
           tabBarIcon: ({ color, size }) => (
