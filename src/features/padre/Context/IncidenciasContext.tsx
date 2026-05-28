@@ -1,0 +1,1 @@
+//coming soon, basicamente pq os dos se conectan pero no se a<ctualizan al mismo tiempo

@@ -1,8 +1,10 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
 import { PadreScreen } from "@/features/padre";
+import PadreHijosStack from "@/features/padre/navigation/PadreHijosStack";
 import ConfigurationNavigator from "../components/ConfigurationNavigator";
 import { MaterialIcons } from "@expo/vector-icons";
+import PadreDashStack from "@/features/padre/navigation/PadreDashStack";
 
 const Tab = createBottomTabNavigator();
 
