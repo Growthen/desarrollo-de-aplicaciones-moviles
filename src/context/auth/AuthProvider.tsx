@@ -60,6 +60,7 @@ export default function AuthProvider({ children }: Props) {
       const {
         accessToken,
         userId,
+        name,
         username: userUsername,
         email,
         role,
@@ -67,6 +68,7 @@ export default function AuthProvider({ children }: Props) {
       await saveToken(accessToken);
       const newUser = {
         id: userId,
+        name,
         username: userUsername,
         email,
         role: role as AuthRole,
@@ -101,6 +103,7 @@ export default function AuthProvider({ children }: Props) {
       const {
         accessToken,
         userId,
+        name: userName,
         username: userUsername,
         email: userEmail,
         role,
@@ -108,6 +111,7 @@ export default function AuthProvider({ children }: Props) {
       await saveToken(accessToken);
       const newUser = {
         id: userId,
+        name: userName,
         username: userUsername,
         email: userEmail,
         role: role as AuthRole,
@@ -139,6 +143,13 @@ export default function AuthProvider({ children }: Props) {
     setNeedsBiometricUnlock(false);
   };
 
+  const updateUserEmail = async (email: string) => {
+    if (!user) return;
+    const updatedUser = { ...user, email };
+    await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedUser));
+    setUser(updatedUser);
+  };
+
   const devLogin = async (role: AuthRole) => {
     setIsLoading(true);
     setError(null);
@@ -147,6 +158,7 @@ export default function AuthProvider({ children }: Props) {
       await saveToken(mockToken);
       const mockUser: User = {
         id: 9999,
+        name: `Dev ${role.toLowerCase()}`,
         username: `dev_${role.toLowerCase()}`,
         email: `dev_${role.toLowerCase()}@trilce.edu.pe`,
         role,
@@ -202,6 +214,7 @@ export default function AuthProvider({ children }: Props) {
         login,
         Register,
         logout,
+        updateUserEmail,
         devLogin,
         isLoading,
         error,

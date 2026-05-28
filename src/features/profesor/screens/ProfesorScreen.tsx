@@ -42,7 +42,7 @@ export default function ProfesorScreen() {
       <ScrollView contentContainerStyle={styles.content}>
         <View>
           <ThemedText type="brandTitle">
-            Hola, {user?.username || "Profesor"}
+            Hola, {user?.name || "Profesor"}
           </ThemedText>
         </View>
 

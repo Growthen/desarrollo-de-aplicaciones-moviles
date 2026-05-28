@@ -1,4 +1,6 @@
 import {
+  ActivityIndicator,
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -14,11 +16,51 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { COLORS, ThemedText } from "@/shared";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
+import useAuth from "@/features/auth/hooks/useAuth";
+import { updateUserService } from "@/features/auth/services/auth";
 
 export default function EmailRestoreScreen() {
   const navigation = useNavigation();
+  const { user, updateUserEmail } = useAuth();
   const [newEmail, setNewEmail] = useState("");
   const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    const trimmedEmail = newEmail.trim();
+    if (!trimmedEmail) {
+      Alert.alert("Error", "Ingresa un correo valido.");
+      return;
+    }
+
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(trimmedEmail)) {
+      Alert.alert("Error", "Ingresa un correo valido.");
+      return;
+    }
+
+    if (user?.email === trimmedEmail) {
+      Alert.alert("Error", "El correo nuevo debe ser diferente.");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      await updateUserService({ email: trimmedEmail });
+      await updateUserEmail(trimmedEmail);
+      Alert.alert("Exito", "Correo actualizado correctamente.", [
+        { text: "OK", onPress: () => navigation.goBack() },
+      ]);
+      setNewEmail("");
+    } catch (error: any) {
+      const errMsg =
+        error.response?.data?.message ||
+        "Ocurrio un error al actualizar el correo.";
+      Alert.alert("Error", errMsg);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.root} edges={["bottom"]}>
@@ -78,7 +120,7 @@ export default function EmailRestoreScreen() {
                   color={COLORS.secondary}
                 />
                 <ThemedText type="body" style={styles.currentEmailText}>
-                  estudiante.trilce@universidad.edu.pe
+                  {user?.email ?? "—"}
                 </ThemedText>
               </View>
               <ThemedText type="body" style={styles.helperText}>
@@ -127,6 +169,8 @@ export default function EmailRestoreScreen() {
                 styles.submitButtonContainer,
                 pressed && { transform: [{ scale: 0.98 }] },
               ]}
+              onPress={handleSubmit}
+              disabled={isSubmitting}
             >
               <LinearGradient
                 colors={[COLORS.primary, COLORS.primaryContainer]}
@@ -134,13 +178,19 @@ export default function EmailRestoreScreen() {
                 end={{ x: 1, y: 1 }}
                 style={styles.submitButton}
               >
-                <ThemedText type="button">Confirmar Cambio</ThemedText>
-                <MaterialIcons
-                  name="sync-alt"
-                  size={20}
-                  color={COLORS.onPrimary}
-                  style={styles.submitIcon}
-                />
+                {isSubmitting ? (
+                  <ActivityIndicator size="small" color={COLORS.onPrimary} />
+                ) : (
+                  <>
+                    <ThemedText type="button">Confirmar Cambio</ThemedText>
+                    <MaterialIcons
+                      name="sync-alt"
+                      size={20}
+                      color={COLORS.onPrimary}
+                      style={styles.submitIcon}
+                    />
+                  </>
+                )}
               </LinearGradient>
             </Pressable>
           </View>

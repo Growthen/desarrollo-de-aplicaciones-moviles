@@ -1,9 +1,26 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, View, Text, TextInput, Pressable, ScrollView, SafeAreaView, Platform, StatusBar, KeyboardAvoidingView, ActivityIndicator, Alert } from "react-native";
+import {
+  StyleSheet,
+  View,
+  Text,
+  TextInput,
+  Pressable,
+  ScrollView,
+  Platform,
+  StatusBar,
+  KeyboardAvoidingView,
+  ActivityIndicator,
+  Alert,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { COLORS } from "@/shared";
 import { useNavigation } from "@react-navigation/native";
-import api from "@/features/auth/services/auth";
+import {
+  createStudent,
+  createUser,
+  getParents,
+} from "@/features/coordinador/services/coordinadorService";
 
 export default function RegistrarUsuarioScreen() {
   const navigation = useNavigation<any>();
@@ -22,10 +39,8 @@ export default function RegistrarUsuarioScreen() {
   useEffect(() => {
     const fetchParents = async () => {
       try {
-        const res = await api.get("/api/users/parents");
-        if (res.data?.data) {
-          setParents(res.data.data);
-        }
+        const data = await getParents();
+        setParents(data);
       } catch (error) {
         console.error("Error fetching parents:", error);
       }
@@ -64,7 +79,10 @@ export default function RegistrarUsuarioScreen() {
       setSubmitting(true);
       if (role === "alumno") {
         if (!selectedParentId) {
-          Alert.alert("Error", "Debe vincular un padre o madre para registrar un alumno");
+          Alert.alert(
+            "Error",
+            "Debe vincular un padre o madre para registrar un alumno",
+          );
           return;
         }
 
@@ -73,7 +91,7 @@ export default function RegistrarUsuarioScreen() {
         const firstName = parts[0] || "";
         const lastName = parts.slice(1).join(" ") || "Pérez";
 
-        await api.post("/api/students", {
+        await createStudent({
           firstName,
           lastName,
           dni,
@@ -85,7 +103,7 @@ export default function RegistrarUsuarioScreen() {
           return;
         }
 
-        await api.post("/api/users", {
+        await createUser({
           email,
           name: fullName,
           dni,
@@ -95,10 +113,12 @@ export default function RegistrarUsuarioScreen() {
       }
 
       Alert.alert("Éxito", "Usuario registrado correctamente", [
-        { text: "OK", onPress: () => navigation.goBack() }
+        { text: "OK", onPress: () => navigation.goBack() },
       ]);
     } catch (error: any) {
-      const errMsg = error.response?.data?.message || "Ocurrió un error al registrar el usuario";
+      const errMsg =
+        error.response?.data?.message ||
+        "Ocurrió un error al registrar el usuario";
       Alert.alert("Error", errMsg);
     } finally {
       setSubmitting(false);
@@ -106,41 +126,51 @@ export default function RegistrarUsuarioScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView edges={["left", "right", "bottom"]} style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.surface} />
-      
+
       {/* TopAppBar */}
       <View style={styles.header}>
-        <Pressable 
-          style={styles.iconButton} 
+        <Pressable
+          style={styles.iconButton}
           onPress={() => navigation.goBack()}
         >
           <MaterialIcons name="arrow-back" size={24} color={COLORS.primary} />
         </Pressable>
-        <Text style={styles.headerTitle} numberOfLines={1}>TRILCE</Text>
+        <Text style={styles.headerTitle} numberOfLines={1}>
+          TRILCE
+        </Text>
         <View style={styles.profileIcon}>
-          <MaterialIcons name="person" size={24} color={COLORS.onSurfaceVariant} />
+          <MaterialIcons
+            name="person"
+            size={24}
+            color={COLORS.onSurfaceVariant}
+          />
         </View>
       </View>
 
-      <KeyboardAvoidingView 
-        style={{ flex: 1 }} 
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
           {/* Header Section */}
           <View style={styles.pageHeader}>
             <Text style={styles.title}>Registrar Nuevo Usuario</Text>
-            <Text style={styles.subtitle}>Plataforma de gestión académica para coordinadores de TRILCE</Text>
+            <Text style={styles.subtitle}>
+              Plataforma de gestión académica para coordinadores de TRILCE
+            </Text>
           </View>
 
           {/* Form Area */}
           <View style={styles.formContainer}>
-            
             {/* Personal Info Block */}
             <View style={styles.blockContainer}>
               <Text style={styles.blockTitle}>Información Personal</Text>
-              
+
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Nombre Completo</Text>
                 <TextInput
@@ -172,31 +202,45 @@ export default function RegistrarUsuarioScreen() {
                 <Text style={styles.blockTitle}>Vincular Padre/Madre</Text>
                 <View style={styles.inputGroup}>
                   <Text style={styles.label}>Seleccionar Padre</Text>
-                  <Pressable 
+                  <Pressable
                     style={styles.inputContainerDropdown}
                     onPress={() => setShowParentDropdown(!showParentDropdown)}
                   >
-                    <Text style={[styles.inputText, !selectedParentId && styles.placeholderText]}>
-                      {selectedParentId 
-                        ? parents.find(p => p.id === selectedParentId)?.name 
+                    <Text
+                      style={[
+                        styles.inputText,
+                        !selectedParentId && styles.placeholderText,
+                      ]}
+                    >
+                      {selectedParentId
+                        ? parents.find((p) => p.id === selectedParentId)?.name
                         : "Seleccionar un padre de familia"}
                     </Text>
-                    <MaterialIcons name="keyboard-arrow-down" size={24} color={COLORS.onSurfaceVariant} />
+                    <MaterialIcons
+                      name="keyboard-arrow-down"
+                      size={24}
+                      color={COLORS.onSurfaceVariant}
+                    />
                   </Pressable>
-                  
+
                   {showParentDropdown && (
                     <View style={styles.dropdownList}>
-                      <ScrollView nestedScrollEnabled={true} style={{ maxHeight: 150 }}>
+                      <ScrollView
+                        nestedScrollEnabled={true}
+                        style={{ maxHeight: 150 }}
+                      >
                         {parents.map((p) => (
-                          <Pressable 
-                            key={p.id} 
+                          <Pressable
+                            key={p.id}
                             style={styles.dropdownItem}
                             onPress={() => {
                               setSelectedParentId(p.id);
                               setShowParentDropdown(false);
                             }}
                           >
-                            <Text style={styles.dropdownItemText}>{p.name} (DNI: {p.dni})</Text>
+                            <Text style={styles.dropdownItemText}>
+                              {p.name} (DNI: {p.dni})
+                            </Text>
                           </Pressable>
                         ))}
                       </ScrollView>
@@ -210,7 +254,7 @@ export default function RegistrarUsuarioScreen() {
             {role !== "alumno" && (
               <View style={styles.blockContainer}>
                 <Text style={styles.blockTitle}>Datos de Acceso</Text>
-                
+
                 <View style={styles.inputGroup}>
                   <Text style={styles.label}>Correo electrónico</Text>
                   <TextInput
@@ -235,14 +279,14 @@ export default function RegistrarUsuarioScreen() {
                       value={password}
                       onChangeText={setPassword}
                     />
-                    <Pressable 
+                    <Pressable
                       style={styles.visibilityIcon}
                       onPress={() => setShowPassword(!showPassword)}
                     >
-                      <MaterialIcons 
-                        name={showPassword ? "visibility-off" : "visibility"} 
-                        size={20} 
-                        color={COLORS.onSurfaceVariant} 
+                      <MaterialIcons
+                        name={showPassword ? "visibility-off" : "visibility"}
+                        size={20}
+                        color={COLORS.onSurfaceVariant}
                       />
                     </Pressable>
                   </View>
@@ -253,52 +297,94 @@ export default function RegistrarUsuarioScreen() {
             {/* Role Selector Block */}
             <View style={styles.blockContainer}>
               <Text style={styles.blockTitle}>Asignación de Rol</Text>
-              
+
               <View style={styles.roleGrid}>
                 {/* Padre Option */}
-                <Pressable 
-                  style={[styles.roleCard, role === "padre" && styles.roleCardActive]}
+                <Pressable
+                  style={[
+                    styles.roleCard,
+                    role === "padre" && styles.roleCardActive,
+                  ]}
                   onPress={() => setRole("padre")}
                 >
-                  <MaterialIcons 
-                    name="family-restroom" 
-                    size={28} 
-                    color={role === "padre" ? COLORS.primary : COLORS.onSurfaceVariant} 
+                  <MaterialIcons
+                    name="family-restroom"
+                    size={28}
+                    color={
+                      role === "padre"
+                        ? COLORS.primary
+                        : COLORS.onSurfaceVariant
+                    }
                   />
-                  <Text style={[styles.roleText, role === "padre" && styles.roleTextActive]}>PADRE</Text>
+                  <Text
+                    style={[
+                      styles.roleText,
+                      role === "padre" && styles.roleTextActive,
+                    ]}
+                  >
+                    PADRE
+                  </Text>
                 </Pressable>
 
                 {/* Profesor Option */}
-                <Pressable 
-                  style={[styles.roleCard, role === "profesor" && styles.roleCardActive]}
+                <Pressable
+                  style={[
+                    styles.roleCard,
+                    role === "profesor" && styles.roleCardActive,
+                  ]}
                   onPress={() => setRole("profesor")}
                 >
-                  <MaterialIcons 
-                    name="school" 
-                    size={28} 
-                    color={role === "profesor" ? COLORS.primary : COLORS.onSurfaceVariant} 
+                  <MaterialIcons
+                    name="school"
+                    size={28}
+                    color={
+                      role === "profesor"
+                        ? COLORS.primary
+                        : COLORS.onSurfaceVariant
+                    }
                   />
-                  <Text style={[styles.roleText, role === "profesor" && styles.roleTextActive]}>PROFESOR</Text>
+                  <Text
+                    style={[
+                      styles.roleText,
+                      role === "profesor" && styles.roleTextActive,
+                    ]}
+                  >
+                    PROFESOR
+                  </Text>
                 </Pressable>
 
                 {/* Alumno Option */}
-                <Pressable 
-                  style={[styles.roleCard, role === "alumno" && styles.roleCardActive]}
+                <Pressable
+                  style={[
+                    styles.roleCard,
+                    role === "alumno" && styles.roleCardActive,
+                  ]}
                   onPress={() => setRole("alumno")}
                 >
-                  <MaterialIcons 
-                    name="face" 
-                    size={28} 
-                    color={role === "alumno" ? COLORS.primary : COLORS.onSurfaceVariant} 
+                  <MaterialIcons
+                    name="face"
+                    size={28}
+                    color={
+                      role === "alumno"
+                        ? COLORS.primary
+                        : COLORS.onSurfaceVariant
+                    }
                   />
-                  <Text style={[styles.roleText, role === "alumno" && styles.roleTextActive]}>ALUMNO</Text>
+                  <Text
+                    style={[
+                      styles.roleText,
+                      role === "alumno" && styles.roleTextActive,
+                    ]}
+                  >
+                    ALUMNO
+                  </Text>
                 </Pressable>
               </View>
             </View>
 
             {/* Action Button */}
             <View style={styles.actionContainer}>
-              <Pressable 
+              <Pressable
                 style={styles.saveButton}
                 onPress={handleSave}
                 disabled={submitting}
@@ -307,13 +393,16 @@ export default function RegistrarUsuarioScreen() {
                   <ActivityIndicator size="small" color={COLORS.onPrimary} />
                 ) : (
                   <>
-                    <MaterialIcons name="save" size={20} color={COLORS.onPrimary} />
+                    <MaterialIcons
+                      name="save"
+                      size={20}
+                      color={COLORS.onPrimary}
+                    />
                     <Text style={styles.saveButtonText}>Guardar Usuario</Text>
                   </>
                 )}
               </Pressable>
             </View>
-
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -344,7 +433,7 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
     flex: 1,
     textAlign: "center",
-    fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
+    fontFamily: Platform.OS === "ios" ? "System" : "Roboto",
   },
   profileIcon: {
     width: 32,

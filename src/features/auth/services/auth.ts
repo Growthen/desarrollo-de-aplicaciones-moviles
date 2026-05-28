@@ -5,6 +5,8 @@ import type {
   ForgotPasswordRequest,
   VerifyResetCodeRequest,
   ResetPasswordRequest,
+  ChangePasswordRequest,
+  UpdateUserRequest,
   AuthResponse,
 } from "../types/auth.types";
 import { getToken } from "./token";
@@ -72,6 +74,23 @@ export const resetPasswordService = async (
     "/api/auth/reset-password",
     data,
   );
+  return response.data;
+};
+
+export const changePasswordService = async (
+  data: ChangePasswordRequest,
+): Promise<AuthResponse> => {
+  const response = await api.patch<AuthResponse>(
+    "/api/users/me/change-password",
+    data,
+  );
+  return response.data;
+};
+
+export const updateUserService = async (
+  data: UpdateUserRequest,
+): Promise<AuthResponse> => {
+  const response = await api.put<AuthResponse>("/api/users/me/update", data);
   return response.data;
 };
 
