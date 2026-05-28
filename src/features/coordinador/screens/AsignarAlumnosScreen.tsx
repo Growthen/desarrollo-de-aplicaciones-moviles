@@ -79,7 +79,7 @@ export default function AsignarAlumnosScreen() {
         });
 
         Alert.alert("Éxito", "Matrícula de alumnos actualizada correctamente", [
-          { text: "OK", onPress: () => navigation.navigate("CursosScreenPlaceholder") }
+          { text: "OK", onPress: () => navigation.navigate("CoordinadorDashboard") }
         ]);
       } else {
         // Create new class
@@ -94,7 +94,7 @@ export default function AsignarAlumnosScreen() {
         });
 
         Alert.alert("Éxito", "Curso creado e inscripciones registradas correctamente", [
-          { text: "OK", onPress: () => navigation.navigate("CursosScreenPlaceholder") }
+          { text: "OK", onPress: () => navigation.navigate("CoordinadorDashboard") }
         ]);
       }
     } catch (error: any) {

@@ -19,26 +19,6 @@ export default function CoordinadorNavigator() {
           ),
         }}
       />
-      <Tab.Screen
-        name="CoodinadorCrearUsers"
-        component={CoordinadorScreen}
-        options={{
-          title: "Cursos",
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="school" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="CoordinadorCrearCurso"
-        component={CoordinadorScreen}
-        options={{
-          title: "Usuarios",
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="group" size={size} color={color} />
-          ),
-        }}
-      />
       <Tab.Screen 
         name="CoordinadorCrearCurso" 
         component={CrearCursoScreen}
