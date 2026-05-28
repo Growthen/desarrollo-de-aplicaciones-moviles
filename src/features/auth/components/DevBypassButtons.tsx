@@ -28,28 +28,28 @@ export default function DevBypassButtons() {
     color: string;
     bg: string;
   }[] = [
-      {
-        role: "PROFESOR",
-        label: "Ingresar como Profesor",
-        icon: "school",
-        color: COLORS.primary,
-        bg: COLORS.primaryFixed,
-      },
-      {
-        role: "PADRE",
-        label: "Ingresar como Padre",
-        icon: "family-restroom",
-        color: COLORS.tertiary,
-        bg: COLORS.tertiaryFixed,
-      },
-      {
-        role: "COORDINADOR",
-        label: "Ingresar como Coordinador",
-        icon: "admin-panel-settings",
-        color: COLORS.secondary,
-        bg: COLORS.secondaryFixed,
-      },
-    ];
+    {
+      role: "PROFESOR",
+      label: "Ingresar como Profesor",
+      icon: "school",
+      color: COLORS.primary,
+      bg: COLORS.primaryFixed,
+    },
+    {
+      role: "PADRE",
+      label: "Ingresar como Padre",
+      icon: "family-restroom",
+      color: COLORS.tertiary,
+      bg: COLORS.tertiaryFixed,
+    },
+    {
+      role: "COORDINADOR",
+      label: "Ingresar como Coordinador",
+      icon: "admin-panel-settings",
+      color: COLORS.secondary,
+      bg: COLORS.secondaryFixed,
+    },
+  ];
 
   return (
     <View style={styles.container}>
@@ -74,18 +74,31 @@ export default function DevBypassButtons() {
               pressed && styles.buttonPressed,
             ]}
           >
-            <View style={[styles.iconContainer, { backgroundColor: option.bg }]}>
-              <MaterialIcons name={option.icon} size={20} color={option.color} />
+            <View
+              style={[styles.iconContainer, { backgroundColor: option.bg }]}
+            >
+              <MaterialIcons
+                name={option.icon}
+                size={20}
+                color={option.color}
+              />
             </View>
             <View style={styles.textContainer}>
-              <ThemedText type="body" style={[styles.buttonText, { color: option.color }]}>
+              <ThemedText
+                type="body"
+                style={[styles.buttonText, { color: option.color }]}
+              >
                 {option.label}
               </ThemedText>
               <ThemedText type="roleLabel" style={styles.subtext}>
                 Rol: {option.role}
               </ThemedText>
             </View>
-            <MaterialIcons name="chevron-right" size={20} color={COLORS.outline} />
+            <MaterialIcons
+              name="chevron-right"
+              size={20}
+              color={COLORS.outline}
+            />
           </Pressable>
         ))}
       </View>

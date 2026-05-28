@@ -23,7 +23,10 @@ type RouteParams = {
 };
 
 function formatCode(value: string) {
-  const raw = value.replace(/[^0-9a-zA-Z]/g, "").toUpperCase().slice(0, 8);
+  const raw = value
+    .replace(/[^0-9a-zA-Z]/g, "")
+    .toUpperCase()
+    .slice(0, 8);
   const first = raw.slice(0, 4);
   const second = raw.slice(4, 8);
   return second ? `${first}-${second}` : first;
@@ -39,8 +42,10 @@ export default function VerifyResetCodeScreen() {
 
   const getErrorMessage = (err: unknown, fallback: string) => {
     const axiosError = err as AxiosError<{ message?: string }>;
-    return axiosError?.response?.data?.message ??
-      (err instanceof Error ? err.message : fallback);
+    return (
+      axiosError?.response?.data?.message ??
+      (err instanceof Error ? err.message : fallback)
+    );
   };
 
   const handleSubmit = async () => {
@@ -57,7 +62,10 @@ export default function VerifyResetCodeScreen() {
 
     try {
       setIsSubmitting(true);
-      await verifyResetCodeService({ email: trimmedEmail, code: normalizedCode });
+      await verifyResetCodeService({
+        email: trimmedEmail,
+        code: normalizedCode,
+      });
       Alert.alert("Verificado", "El codigo es valido.", [
         {
           text: "Continuar",
@@ -137,7 +145,9 @@ export default function VerifyResetCodeScreen() {
                   value={code}
                   onChangeText={(value) => setCode(formatCode(value))}
                   autoCapitalize="characters"
-                  keyboardType={Platform.OS === "ios" ? "default" : "visible-password"}
+                  keyboardType={
+                    Platform.OS === "ios" ? "default" : "visible-password"
+                  }
                   maxLength={9}
                   onFocus={() => setFocusedField("code")}
                   onBlur={() => setFocusedField(null)}

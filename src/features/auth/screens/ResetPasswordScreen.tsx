@@ -34,8 +34,10 @@ export default function ResetPasswordScreen() {
 
   const getErrorMessage = (err: unknown, fallback: string) => {
     const axiosError = err as AxiosError<{ message?: string }>;
-    return axiosError?.response?.data?.message ??
-      (err instanceof Error ? err.message : fallback);
+    return (
+      axiosError?.response?.data?.message ??
+      (err instanceof Error ? err.message : fallback)
+    );
   };
 
   const handleTogglePassword = () => setShowPassword((prev) => !prev);
