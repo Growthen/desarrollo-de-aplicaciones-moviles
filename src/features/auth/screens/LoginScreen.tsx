@@ -12,7 +12,8 @@ import {
 } from "react-native";
 
 import useAuth from "@/features/auth/hooks/useAuth";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigation } from "@react-navigation/native";
 
 import { LinearGradient } from "expo-linear-gradient";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
@@ -23,7 +24,17 @@ import DevBypassButtons from "@/features/auth/components/DevBypassButtons";
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export default function LoginScreen() {
-  const { login, Register, isLoading, error } = useAuth();
+  const navigation = useNavigation<any>();
+  const {
+    login,
+    Register,
+    isLoading,
+    error,
+    needsBiometricUnlock,
+    unlockWithBiometrics,
+    logout,
+    user,
+  } = useAuth();
 
   const [username, setUsername] = useState("");
   const [name, setName] = useState("");
@@ -66,6 +77,31 @@ export default function LoginScreen() {
     }
   };
 
+  useEffect(() => {
+    if (needsBiometricUnlock) {
+      const triggerBio = async () => {
+        try {
+          await unlockWithBiometrics();
+        } catch (err: any) {
+          console.log("Error biométrico automático:", err.message);
+        }
+      };
+      const timer = setTimeout(triggerBio, 600);
+      return () => clearTimeout(timer);
+    }
+  }, [needsBiometricUnlock, unlockWithBiometrics]);
+
+  const handleBiometricPress = async () => {
+    try {
+      await unlockWithBiometrics();
+    } catch (err: any) {
+      Alert.alert(
+        "Autenticación Fallida",
+        err.message || "No se pudo verificar la huella.",
+      );
+    }
+  };
+
   return (
     <View style={styles.root}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.surface} />
@@ -93,226 +129,287 @@ export default function LoginScreen() {
             </ThemedText>
           </View>
 
-          <View style={styles.tabContainer}>
-            <Pressable
-              style={[styles.tabButton, isLoginView && styles.tabButtonActive]}
-              onPress={() => setIsLoginView(true)}
-            >
-              <ThemedText
-                type={isLoginView ? "button" : "label"}
-                style={isLoginView ? { color: COLORS.primary } : {}}
-              >
-                Ingresar
+          {needsBiometricUnlock ? (
+            <View style={styles.biometricContainer}>
+              <ThemedText type="brandTitle" style={styles.welcomeText}>
+                ¡Hola de nuevo!
               </ThemedText>
-            </Pressable>
-            <Pressable
-              style={[styles.tabButton, !isLoginView && styles.tabButtonActive]}
-              onPress={() => setIsLoginView(false)}
-            >
-              <ThemedText
-                type={!isLoginView ? "button" : "label"}
-                style={!isLoginView ? { color: COLORS.primary } : {}}
-              >
-                Registrarse
+              <ThemedText type="brandSubtitle" style={styles.usernameText}>
+                {user?.username}
               </ThemedText>
-            </Pressable>
-          </View>
 
-          <View style={styles.card}>
-            {isLoginView ? (
-              <>
-                <View style={styles.fieldGroup}>
-                  <ThemedText type="label">Codigo Personal</ThemedText>
-                  <View
-                    style={[
-                      styles.inputWrapper,
-                      focusedField === "username" && styles.inputWrapperFocused,
-                    ]}
-                  >
-                    <MaterialIcons
-                      name="person-outline"
-                      size={20}
-                      color={COLORS.outline}
-                      style={styles.inputIcon}
-                    />
-                    <TextInput
-                      style={styles.input}
-                      placeholder="C001234567"
-                      placeholderTextColor={COLORS.outline}
-                      value={username}
-                      onChangeText={setUsername}
-                      autoCapitalize="none"
-                      autoComplete="off"
-                      onFocus={() => setFocusedField("username")}
-                      onBlur={() => setFocusedField(null)}
-                    />
-                  </View>
-                </View>
-              </>
-            ) : (
-              <>
-                <View style={styles.fieldGroup}>
-                  <ThemedText type="label">Nombre completo</ThemedText>
-                  <View
-                    style={[
-                      styles.inputWrapper,
-                      focusedField === "name" && styles.inputWrapperFocused,
-                    ]}
-                  >
-                    <MaterialIcons
-                      name="badge"
-                      size={20}
-                      color={COLORS.outline}
-                      style={styles.inputIcon}
-                    />
-                    <TextInput
-                      style={styles.input}
-                      placeholder="Juan Perez"
-                      placeholderTextColor={COLORS.outline}
-                      value={name}
-                      onChangeText={setName}
-                      autoCapitalize="words"
-                      onFocus={() => setFocusedField("name")}
-                      onBlur={() => setFocusedField(null)}
-                    />
-                  </View>
-                </View>
-
-                <View style={styles.fieldGroup}>
-                  <ThemedText type="label">Correo electrónico</ThemedText>
-                  <View
-                    style={[
-                      styles.inputWrapper,
-                      focusedField === "email" && styles.inputWrapperFocused,
-                    ]}
-                  >
-                    <MaterialIcons
-                      name="email"
-                      size={20}
-                      color={COLORS.outline}
-                      style={styles.inputIcon}
-                    />
-                    <TextInput
-                      style={styles.input}
-                      placeholder="juan@ejemplo.com"
-                      placeholderTextColor={COLORS.outline}
-                      value={email}
-                      onChangeText={setEmail}
-                      autoCapitalize="none"
-                      keyboardType="email-address"
-                      onFocus={() => setFocusedField("email")}
-                      onBlur={() => setFocusedField(null)}
-                    />
-                  </View>
-                </View>
-
-                <View style={styles.fieldGroup}>
-                  <ThemedText type="label">DNI</ThemedText>
-                  <View
-                    style={[
-                      styles.inputWrapper,
-                      focusedField === "dni" && styles.inputWrapperFocused,
-                    ]}
-                  >
-                    <MaterialIcons
-                      name="credit-card"
-                      size={20}
-                      color={COLORS.outline}
-                      style={styles.inputIcon}
-                    />
-                    <TextInput
-                      style={styles.input}
-                      placeholder="12345678"
-                      placeholderTextColor={COLORS.outline}
-                      value={dni}
-                      onChangeText={setDni}
-                      keyboardType="numeric"
-                      maxLength={8}
-                      onFocus={() => setFocusedField("dni")}
-                      onBlur={() => setFocusedField(null)}
-                    />
-                  </View>
-                </View>
-              </>
-            )}
-
-            <View style={styles.fieldGroup}>
-              <ThemedText type="label">Contraseña</ThemedText>
-              <View
-                style={[
-                  styles.inputWrapper,
-                  focusedField === "password" && styles.inputWrapperFocused,
-                ]}
-              >
-                <MaterialIcons
-                  name="lock-outline"
-                  size={20}
-                  color={COLORS.outline}
-                  style={styles.inputIcon}
-                />
-                <TextInput
-                  style={[styles.input, styles.inputPassword]}
-                  placeholder="••••••••"
-                  placeholderTextColor={COLORS.outline}
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry={!showPassword}
-                  autoComplete="password"
-                  onFocus={() => setFocusedField("password")}
-                  onBlur={() => setFocusedField(null)}
-                />
+              <View style={styles.biometricCard}>
                 <Pressable
-                  onPress={() => setShowPassword((prev) => !prev)}
-                  style={styles.eyeButton}
-                  hitSlop={8}
+                  onPress={handleBiometricPress}
+                  style={({ pressed }) => [
+                    styles.biometricButton,
+                    pressed && styles.biometricButtonPressed,
+                  ]}
                 >
-                  <MaterialIcons
-                    name={showPassword ? "visibility" : "visibility-off"}
-                    size={20}
-                    color={COLORS.outline}
-                  />
+                  <LinearGradient
+                    colors={[COLORS.tertiary, COLORS.tertiaryContainer]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.biometricButtonGradient}
+                  >
+                    <MaterialIcons
+                      name="fingerprint"
+                      size={50}
+                      color={COLORS.onTertiary}
+                    />
+                  </LinearGradient>
+                </Pressable>
+
+                <ThemedText
+                  type="button"
+                  color="onSurface"
+                  style={styles.instructionsText}
+                >
+                  Toca la huella para ingresar
+                </ThemedText>
+              </View>
+
+              <Pressable onPress={logout} style={styles.usePasswordContainer}>
+                <ThemedText type="link">
+                  Usar contraseña (Cerrar sesión)
+                </ThemedText>
+              </Pressable>
+            </View>
+          ) : (
+            <>
+              <View style={styles.tabContainer}>
+                <Pressable
+                  style={[
+                    styles.tabButton,
+                    isLoginView && styles.tabButtonActive,
+                  ]}
+                  onPress={() => setIsLoginView(true)}
+                >
+                  <ThemedText
+                    type={isLoginView ? "button" : "label"}
+                    style={isLoginView ? { color: COLORS.primary } : {}}
+                  >
+                    Ingresar
+                  </ThemedText>
+                </Pressable>
+                <Pressable
+                  style={[
+                    styles.tabButton,
+                    !isLoginView && styles.tabButtonActive,
+                  ]}
+                  onPress={() => setIsLoginView(false)}
+                >
+                  <ThemedText
+                    type={!isLoginView ? "button" : "label"}
+                    style={!isLoginView ? { color: COLORS.primary } : {}}
+                  >
+                    Registrarse
+                  </ThemedText>
                 </Pressable>
               </View>
-            </View>
 
-            <Pressable
-              onPress={isLoginView ? handleLogin : handleRegister}
-              disabled={isLoading}
-              style={({ pressed }) => [
-                pressed && !isLoading && styles.submitButtonPressed,
-                isLoading && styles.submitButtonDisabled,
-              ]}
-            >
-              <LinearGradient
-                colors={[COLORS.primary, COLORS.primaryContainer]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.submitButton}
-              >
-                {isLoading ? (
-                  <ThemedText type="button">
-                    {isLoginView ? "Ingresando..." : "Registrando..."}
-                  </ThemedText>
+              <View style={styles.card}>
+                {isLoginView ? (
+                  <>
+                    <View style={styles.fieldGroup}>
+                      <ThemedText type="label">Codigo Personal</ThemedText>
+                      <View
+                        style={[
+                          styles.inputWrapper,
+                          focusedField === "username" &&
+                            styles.inputWrapperFocused,
+                        ]}
+                      >
+                        <MaterialIcons
+                          name="person-outline"
+                          size={20}
+                          color={COLORS.outline}
+                          style={styles.inputIcon}
+                        />
+                        <TextInput
+                          style={styles.input}
+                          placeholder="C001234567"
+                          placeholderTextColor={COLORS.outline}
+                          value={username}
+                          onChangeText={setUsername}
+                          autoCapitalize="none"
+                          autoComplete="off"
+                          onFocus={() => setFocusedField("username")}
+                          onBlur={() => setFocusedField(null)}
+                        />
+                      </View>
+                    </View>
+                  </>
                 ) : (
                   <>
-                    <ThemedText type="button">
-                      {isLoginView ? "Ingresar" : "Registrarse"}
-                    </ThemedText>
-                    <MaterialIcons
-                      name={isLoginView ? "arrow-forward" : "person-add"}
-                      size={18}
-                      color={COLORS.onPrimary}
-                    />
+                    <View style={styles.fieldGroup}>
+                      <ThemedText type="label">Nombre completo</ThemedText>
+                      <View
+                        style={[
+                          styles.inputWrapper,
+                          focusedField === "name" && styles.inputWrapperFocused,
+                        ]}
+                      >
+                        <MaterialIcons
+                          name="badge"
+                          size={20}
+                          color={COLORS.outline}
+                          style={styles.inputIcon}
+                        />
+                        <TextInput
+                          style={styles.input}
+                          placeholder="Juan Perez"
+                          placeholderTextColor={COLORS.outline}
+                          value={name}
+                          onChangeText={setName}
+                          autoCapitalize="words"
+                          onFocus={() => setFocusedField("name")}
+                          onBlur={() => setFocusedField(null)}
+                        />
+                      </View>
+                    </View>
+
+                    <View style={styles.fieldGroup}>
+                      <ThemedText type="label">Correo electrónico</ThemedText>
+                      <View
+                        style={[
+                          styles.inputWrapper,
+                          focusedField === "email" &&
+                            styles.inputWrapperFocused,
+                        ]}
+                      >
+                        <MaterialIcons
+                          name="email"
+                          size={20}
+                          color={COLORS.outline}
+                          style={styles.inputIcon}
+                        />
+                        <TextInput
+                          style={styles.input}
+                          placeholder="juan@ejemplo.com"
+                          placeholderTextColor={COLORS.outline}
+                          value={email}
+                          onChangeText={setEmail}
+                          autoCapitalize="none"
+                          keyboardType="email-address"
+                          onFocus={() => setFocusedField("email")}
+                          onBlur={() => setFocusedField(null)}
+                        />
+                      </View>
+                    </View>
+
+                    <View style={styles.fieldGroup}>
+                      <ThemedText type="label">DNI</ThemedText>
+                      <View
+                        style={[
+                          styles.inputWrapper,
+                          focusedField === "dni" && styles.inputWrapperFocused,
+                        ]}
+                      >
+                        <MaterialIcons
+                          name="credit-card"
+                          size={20}
+                          color={COLORS.outline}
+                          style={styles.inputIcon}
+                        />
+                        <TextInput
+                          style={styles.input}
+                          placeholder="12345678"
+                          placeholderTextColor={COLORS.outline}
+                          value={dni}
+                          onChangeText={setDni}
+                          keyboardType="numeric"
+                          maxLength={8}
+                          onFocus={() => setFocusedField("dni")}
+                          onBlur={() => setFocusedField(null)}
+                        />
+                      </View>
+                    </View>
                   </>
                 )}
-              </LinearGradient>
-            </Pressable>
-          </View>
 
-          {isLoginView && (
-            <Pressable style={styles.forgotContainer}>
-              <ThemedText type="link">¿Olvidaste tu contraseña?</ThemedText>
-            </Pressable>
+                <View style={styles.fieldGroup}>
+                  <ThemedText type="label">Contraseña</ThemedText>
+                  <View
+                    style={[
+                      styles.inputWrapper,
+                      focusedField === "password" && styles.inputWrapperFocused,
+                    ]}
+                  >
+                    <MaterialIcons
+                      name="lock-outline"
+                      size={20}
+                      color={COLORS.outline}
+                      style={styles.inputIcon}
+                    />
+                    <TextInput
+                      style={[styles.input, styles.inputPassword]}
+                      placeholder="••••••••"
+                      placeholderTextColor={COLORS.outline}
+                      value={password}
+                      onChangeText={setPassword}
+                      secureTextEntry={!showPassword}
+                      autoComplete="password"
+                      onFocus={() => setFocusedField("password")}
+                      onBlur={() => setFocusedField(null)}
+                    />
+                    <Pressable
+                      onPress={() => setShowPassword((prev) => !prev)}
+                      style={styles.eyeButton}
+                      hitSlop={8}
+                    >
+                      <MaterialIcons
+                        name={showPassword ? "visibility" : "visibility-off"}
+                        size={20}
+                        color={COLORS.outline}
+                      />
+                    </Pressable>
+                  </View>
+                </View>
+
+                <Pressable
+                  onPress={isLoginView ? handleLogin : handleRegister}
+                  disabled={isLoading}
+                  style={({ pressed }) => [
+                    pressed && !isLoading && styles.submitButtonPressed,
+                    isLoading && styles.submitButtonDisabled,
+                  ]}
+                >
+                  <LinearGradient
+                    colors={[COLORS.primary, COLORS.primaryContainer]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.submitButton}
+                  >
+                    {isLoading ? (
+                      <ThemedText type="button">
+                        {isLoginView ? "Ingresando..." : "Registrando..."}
+                      </ThemedText>
+                    ) : (
+                      <>
+                        <ThemedText type="button">
+                          {isLoginView ? "Ingresar" : "Registrarse"}
+                        </ThemedText>
+                        <MaterialIcons
+                          name={isLoginView ? "arrow-forward" : "person-add"}
+                          size={18}
+                          color={COLORS.onPrimary}
+                        />
+                      </>
+                    )}
+                  </LinearGradient>
+                </Pressable>
+              </View>
+
+              {isLoginView && (
+                <Pressable
+                  style={styles.forgotContainer}
+                  onPress={() => navigation.navigate("ForgotPassword")}
+                >
+                  <ThemedText type="link">¿Olvidaste tu contraseña?</ThemedText>
+                </Pressable>
+              )}
+            </>
           )}
 
           <DevBypassButtons />
@@ -493,5 +590,69 @@ const styles = StyleSheet.create({
   forgotContainer: {
     marginTop: 32,
     paddingVertical: 4,
+  },
+  biometricContainer: {
+    width: "100%",
+    maxWidth: 400,
+    alignItems: "center",
+    gap: 16,
+  },
+  welcomeText: {
+    fontSize: 24,
+    textAlign: "center",
+    fontFamily: "Manrope_700Bold",
+  },
+  usernameText: {
+    fontSize: 18,
+    textAlign: "center",
+    color: COLORS.primary,
+    marginBottom: 8,
+  },
+  biometricCard: {
+    width: "100%",
+    backgroundColor: COLORS.surfaceContainerLowest,
+    borderRadius: 24,
+    paddingHorizontal: 28,
+    paddingVertical: 40,
+    shadowColor: COLORS.onSurface,
+    shadowOffset: { width: 0, height: 16 },
+    shadowOpacity: 0.04,
+    shadowRadius: 48,
+    elevation: 3,
+    alignItems: "center",
+    gap: 24,
+  },
+  biometricButton: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 4,
+    shadowColor: COLORS.tertiary,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+  },
+  biometricButtonPressed: {
+    transform: [{ scale: 0.95 }],
+    opacity: 0.9,
+  },
+  biometricButtonGradient: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 48,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  instructionsText: {
+    fontSize: 15,
+    textAlign: "center",
+    color: COLORS.onSurfaceVariant,
+    paddingHorizontal: 16,
+  },
+  usePasswordContainer: {
+    marginTop: 20,
+    paddingVertical: 8,
   },
 });

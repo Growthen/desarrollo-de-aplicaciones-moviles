@@ -77,16 +77,16 @@ La aplicación sigue una **arquitectura modular basada en features**, donde cada
 
 ## 🛠️ Tech Stack
 
-| Tecnología | Versión | Descripción |
-|---|---|---|
-| **React Native** | 0.81.5 | Framework de desarrollo móvil multiplataforma |
-| **Expo** | SDK 54 | Plataforma de desarrollo y build tools |
-| **TypeScript** | 5.9 | Tipado estático para mayor robustez |
-| **React Navigation** | 7.x | Navegación nativa con stack y tabs |
-| **Expo Linear Gradient** | 15.x | Gradientes para UI moderna |
-| **React Native Reanimated** | 4.1 | Animaciones fluidas y de alto rendimiento |
-| **React Native Gesture Handler** | 2.28 | Manejo avanzado de gestos táctiles |
-| **ESLint + Prettier** | 9.x / 3.8 | Linting y formateo de código |
+| Tecnología                       | Versión   | Descripción                                   |
+| -------------------------------- | --------- | --------------------------------------------- |
+| **React Native**                 | 0.81.5    | Framework de desarrollo móvil multiplataforma |
+| **Expo**                         | SDK 54    | Plataforma de desarrollo y build tools        |
+| **TypeScript**                   | 5.9       | Tipado estático para mayor robustez           |
+| **React Navigation**             | 7.x       | Navegación nativa con stack y tabs            |
+| **Expo Linear Gradient**         | 15.x      | Gradientes para UI moderna                    |
+| **React Native Reanimated**      | 4.1       | Animaciones fluidas y de alto rendimiento     |
+| **React Native Gesture Handler** | 2.28      | Manejo avanzado de gestos táctiles            |
+| **ESLint + Prettier**            | 9.x / 3.8 | Linting y formateo de código                  |
 
 ---
 
@@ -133,13 +133,13 @@ npm start
 
 ## 📜 Scripts Disponibles
 
-| Script | Comando | Descripción |
-|---|---|---|
-| `start` | `npm start` | Inicia el servidor de desarrollo de Expo |
+| Script    | Comando           | Descripción                                         |
+| --------- | ----------------- | --------------------------------------------------- |
+| `start`   | `npm start`       | Inicia el servidor de desarrollo de Expo            |
 | `android` | `npm run android` | Inicia directamente en emulador/dispositivo Android |
-| `ios` | `npm run ios` | Inicia directamente en simulador iOS |
-| `web` | `npm run web` | Inicia en el navegador web |
-| `lint` | `npm run lint` | Ejecuta ESLint para análisis de código |
+| `ios`     | `npm run ios`     | Inicia directamente en simulador iOS                |
+| `web`     | `npm run web`     | Inicia en el navegador web                          |
+| `lint`    | `npm run lint`    | Ejecuta ESLint para análisis de código              |
 
 ---
 
@@ -221,11 +221,11 @@ npm start
 
 La aplicación maneja tres roles con acceso diferenciado:
 
-| Rol | Clave | Descripción |
-|---|---|---|
-| 🧑‍🤝‍🧑 **Padre** | `padre` | Visualiza las incidencias de sus hijos y da seguimiento |
-| 👩‍🏫 **Docente** | `docente` | Registra y gestiona incidentes dentro de su aula |
-| 🛡️ **Admin** | `admin` | Supervisa y administra todas las incidencias del sistema |
+| Rol            | Clave     | Descripción                                              |
+| -------------- | --------- | -------------------------------------------------------- |
+| 🧑‍🤝‍🧑 **Padre**   | `padre`   | Visualiza las incidencias de sus hijos y da seguimiento  |
+| 👩‍🏫 **Docente** | `docente` | Registra y gestiona incidentes dentro de su aula         |
+| 🛡️ **Admin**   | `admin`   | Supervisa y administra todas las incidencias del sistema |
 
 La selección de rol se realiza desde la pantalla de Login mediante un selector visual antes de iniciar sesión.
 
@@ -254,20 +254,20 @@ Implementada con `@react-navigation/native-stack` y `@react-navigation/bottom-ta
 
 La aplicación utiliza una paleta basada en **Material Design 3** con temas cálidos:
 
-| Token | Color | Uso |
-|---|---|---|
-| `primary` | `#a73300` 🟠 | Acciones principales, branding |
+| Token       | Color        | Uso                            |
+| ----------- | ------------ | ------------------------------ |
+| `primary`   | `#a73300` 🟠 | Acciones principales, branding |
 | `secondary` | `#5029e6` 🟣 | Elementos secundarios, acentos |
-| `tertiary` | `#005cac` 🔵 | Información complementaria |
-| `surface` | `#fef8f1` 🤍 | Fondo de pantallas |
-| `error` | `#ba1a1a` 🔴 | Estados de error |
+| `tertiary`  | `#005cac` 🔵 | Información complementaria     |
+| `surface`   | `#fef8f1` 🤍 | Fondo de pantallas             |
+| `error`     | `#ba1a1a` 🔴 | Estados de error               |
 
 ### Tipografía
 
-| Fuente | Pesos | Uso |
-|---|---|---|
-| **Plus Jakarta Sans** | Bold, ExtraBold | Títulos, branding |
-| **Manrope** | Regular, SemiBold, Bold | Cuerpo de texto, labels, botones |
+| Fuente                | Pesos                   | Uso                              |
+| --------------------- | ----------------------- | -------------------------------- |
+| **Plus Jakarta Sans** | Bold, ExtraBold         | Títulos, branding                |
+| **Manrope**           | Regular, SemiBold, Bold | Cuerpo de texto, labels, botones |
 
 ---
 

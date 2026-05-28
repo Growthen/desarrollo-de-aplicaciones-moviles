@@ -1,34 +1,52 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { CoordinadorScreen } from "@/features/coordinador";
+import { CoordinadorScreen, CursosScreen, CrearCursoScreen, AsignarAlumnosScreen, UsuariosScreen, RegistrarUsuarioScreen } from "@/features/coordinador";
 import ConfigurationNavigator from "../components/ConfigurationNavigator";
 import { MaterialIcons } from "@expo/vector-icons";
+import { COLORS } from "@/shared";
 
 const Tab = createBottomTabNavigator();
 
 export default function CoordinadorNavigator() {
   return (
     <Tab.Navigator screenOptions={{ headerShown: false }}>
-      <Tab.Screen name="CoordinadorDashboard" component={CoordinadorScreen}
+      <Tab.Screen
+        name="CoordinadorDashboard"
+        component={CoordinadorScreen}
         options={{
-          title: "Dashboard",
+          title: "Inicio",
           tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="calendar-month" size={size} color={color} />
-          ),
-        }} />
-      <Tab.Screen name="CoodinadorCrearUsers" component={CoordinadorScreen}
-        options={{
-          title: "Crear Usuarios",
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="person-add" size={size} color={color} />
+            <MaterialIcons name="dashboard" size={size} color={color} />
           ),
         }}
       />
-      <Tab.Screen name="CoordinadorCrearCurso" component={CoordinadorScreen}
+      <Tab.Screen 
+        name="CoordinadorCrearCurso" 
+        component={CrearCursoScreen}
         options={{
           title: "Crear Curso",
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="add" size={size} color={color} />
-          ),
+          tabBarStyle: { display: "none" },
+          tabBarItemStyle: { display: "none" },
+          tabBarButton: () => null,
+        }}
+      />
+      <Tab.Screen 
+        name="CoordinadorAsignarAlumnos" 
+        component={AsignarAlumnosScreen}
+        options={{
+          title: "Asignar Alumnos",
+          tabBarStyle: { display: "none" },
+          tabBarItemStyle: { display: "none" },
+          tabBarButton: () => null,
+        }}
+      />
+      <Tab.Screen 
+        name="CoordinadorRegistrarUsuario" 
+        component={RegistrarUsuarioScreen}
+        options={{
+          title: "Registrar Usuario",
+          tabBarStyle: { display: "none" },
+          tabBarItemStyle: { display: "none" },
+          tabBarButton: () => null,
         }}
       />
       <Tab.Screen

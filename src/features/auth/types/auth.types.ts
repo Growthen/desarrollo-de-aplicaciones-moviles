@@ -10,6 +10,31 @@ export type RegisterRequest = {
   password: string;
 };
 
+export type ForgotPasswordRequest = {
+  email: string;
+};
+
+export type VerifyResetCodeRequest = {
+  email: string;
+  code: string;
+};
+
+export type ResetPasswordRequest = {
+  email: string;
+  newPassword: string;
+  confirmPassword: string;
+};
+
+export type ChangePasswordRequest = {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+};
+
+export type UpdateUserRequest = {
+  email: string;
+};
+
 export type AuthRole = "COORDINADOR" | "PROFESOR" | "PADRE";
 
 export type AuthResponseData = {
@@ -17,6 +42,7 @@ export type AuthResponseData = {
   tokenType: string;
   expiresIn: number;
   userId: number;
+  name: string;
   username: string;
   email: string;
   role: AuthRole;
