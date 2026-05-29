@@ -24,11 +24,15 @@ function RoleNavigator({ role }: { role: string }) {
 }
 
 export default function AppNavigator() {
-  const { user } = useAuth();
+  const { user, needsBiometricUnlock } = useAuth();
   return (
     <NavigationContainer>
       <SafeAreaView style={styles.root} edges={["top"]}>
-        {user ? <RoleNavigator role={user.role} /> : <AuthNavigator />}
+        {user && !needsBiometricUnlock ? (
+          <RoleNavigator role={user.role} />
+        ) : (
+          <AuthNavigator />
+        )}
       </SafeAreaView>
     </NavigationContainer>
   );

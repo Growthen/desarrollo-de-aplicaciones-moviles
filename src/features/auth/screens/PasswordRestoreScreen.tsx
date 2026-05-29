@@ -1,4 +1,6 @@
 import {
+  ActivityIndicator,
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -14,18 +16,79 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { COLORS, ThemedText } from "@/shared";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
+import { changePasswordService } from "@/features/auth/services/auth";
 
 export default function PasswordRestoreScreen() {
   const navigation = useNavigation();
   const [showPassword, setShowPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [focusedField, setFocusedField] = useState<string | null>(null);
 
-  // No logic requested, just UI states.
   const handleTogglePassword = () => setShowPassword((prev) => !prev);
+  const handleToggleNewPassword = () => setShowNewPassword((prev) => !prev);
+  const handleToggleConfirmPassword = () =>
+    setShowConfirmPassword((prev) => !prev);
+
+  const handleSubmit = async () => {
+    if (!currentPassword.trim()) {
+      Alert.alert("Error", "Ingresa tu contraseña actual.");
+      return;
+    }
+
+    if (!newPassword.trim() || newPassword.length < 8) {
+      Alert.alert(
+        "Error",
+        "La nueva contraseña debe tener entre 8 y 100 caracteres.",
+      );
+      return;
+    }
+
+    if (newPassword.length > 100) {
+      Alert.alert(
+        "Error",
+        "La nueva contraseña debe tener entre 8 y 100 caracteres.",
+      );
+      return;
+    }
+
+    if (!confirmPassword.trim()) {
+      Alert.alert("Error", "Confirma tu nueva contraseña.");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      Alert.alert("Error", "Las contraseñas no coinciden.");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      await changePasswordService({
+        currentPassword,
+        newPassword,
+        confirmPassword,
+      });
+      Alert.alert("Exito", "Contrasena actualizada correctamente.", [
+        { text: "OK", onPress: () => navigation.goBack() },
+      ]);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error: any) {
+      const errMsg =
+        error.response?.data?.message ||
+        "Ocurrio un error al actualizar la contrasena.";
+      Alert.alert("Error", errMsg);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.root} edges={["bottom"]}>
@@ -129,15 +192,26 @@ export default function PasswordRestoreScreen() {
                   style={styles.inputIcon}
                 />
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, styles.inputPassword]}
                   placeholder="Crea una clave fuerte"
                   placeholderTextColor={COLORS.outline}
                   value={newPassword}
                   onChangeText={setNewPassword}
-                  secureTextEntry
+                  secureTextEntry={!showNewPassword}
                   onFocus={() => setFocusedField("new")}
                   onBlur={() => setFocusedField(null)}
                 />
+                <Pressable
+                  onPress={handleToggleNewPassword}
+                  style={styles.eyeButton}
+                  hitSlop={8}
+                >
+                  <MaterialIcons
+                    name={showNewPassword ? "visibility" : "visibility-off"}
+                    size={20}
+                    color={COLORS.outline}
+                  />
+                </Pressable>
               </View>
             </View>
 
@@ -156,15 +230,26 @@ export default function PasswordRestoreScreen() {
                   style={styles.inputIcon}
                 />
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, styles.inputPassword]}
                   placeholder="Repite tu nueva clave"
                   placeholderTextColor={COLORS.outline}
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
-                  secureTextEntry
+                  secureTextEntry={!showConfirmPassword}
                   onFocus={() => setFocusedField("confirm")}
                   onBlur={() => setFocusedField(null)}
                 />
+                <Pressable
+                  onPress={handleToggleConfirmPassword}
+                  style={styles.eyeButton}
+                  hitSlop={8}
+                >
+                  <MaterialIcons
+                    name={showConfirmPassword ? "visibility" : "visibility-off"}
+                    size={20}
+                    color={COLORS.outline}
+                  />
+                </Pressable>
               </View>
             </View>
 
@@ -190,6 +275,8 @@ export default function PasswordRestoreScreen() {
                 styles.submitButtonContainer,
                 pressed && { transform: [{ scale: 0.98 }] },
               ]}
+              onPress={handleSubmit}
+              disabled={isSubmitting}
             >
               <LinearGradient
                 colors={[COLORS.primary, COLORS.primaryContainer]}
@@ -197,13 +284,19 @@ export default function PasswordRestoreScreen() {
                 end={{ x: 1, y: 1 }}
                 style={styles.submitButton}
               >
-                <ThemedText type="button">Confirmar Cambio</ThemedText>
-                <MaterialIcons
-                  name="check-circle"
-                  size={20}
-                  color={COLORS.onPrimary}
-                  style={styles.submitIcon}
-                />
+                {isSubmitting ? (
+                  <ActivityIndicator size="small" color={COLORS.onPrimary} />
+                ) : (
+                  <>
+                    <ThemedText type="button">Confirmar Cambio</ThemedText>
+                    <MaterialIcons
+                      name="check-circle"
+                      size={20}
+                      color={COLORS.onPrimary}
+                      style={styles.submitIcon}
+                    />
+                  </>
+                )}
               </LinearGradient>
             </Pressable>
           </View>
