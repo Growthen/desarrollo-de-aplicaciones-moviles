@@ -1,4 +1,4 @@
-import { FlatList, Pressable, StyleSheet, View } from "react-native";
+import { FlatList, Pressable, StyleSheet, View, Text } from "react-native";
 import { useEffect, useState } from "react";
 
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -38,7 +38,9 @@ export default function CourseDetailScreen() {
       <ThemedText type="brandSubtitle" style={{ marginBottom: 20 }}>
         Lista de alumnos
       </ThemedText>
-
+      <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
+        <Text style={styles.backButtonText}>{"<"}</Text>
+      </Pressable>
       <FlatList
         data={students}
         keyExtractor={(item: Student) => item.id.toString()}
@@ -93,5 +95,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 12,
+  },
+  backButton: {
+    position: "absolute",
+    top: 20,
+    left: 20,
+    zIndex: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+
+  backButtonText: {
+    fontSize: 28,
+    color: COLORS.primary,
+    fontFamily: "Manrope_700Bold",
   },
 });
