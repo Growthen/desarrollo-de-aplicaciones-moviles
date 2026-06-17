@@ -42,7 +42,7 @@ export default function IncidenceDetail() {
 
       <View style={styles.card}>
         <View style={styles.statusRow}>
-          <View style={[styles.statusTag, { backgroundColor: statusColor }]}> 
+          <View style={[styles.statusTag, { backgroundColor: statusColor }]}>
             <ThemedText type="button" color="onPrimary">
               {incidence.status}
             </ThemedText>
@@ -66,6 +66,7 @@ export default function IncidenceDetail() {
       </View>
     </View>
   );
+}
 const styles = StyleSheet.create({
   container: {
     flex: 1,
