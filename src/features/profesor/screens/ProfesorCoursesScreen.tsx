@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
@@ -6,22 +5,11 @@ import ActionRow from "@/shared/components/ActionRow";
 import ThemedText from "@/shared/components/ThemedText";
 import { COLORS } from "@/shared/constants/colors";
 
-import { Course } from "../types/types";
-import { getTeacherCourses } from "../services/courseService";
+import { useTeacherCourses } from "../hooks/useTeacherCourses";
 
 export default function ProfesorCoursesScreen() {
   const navigation = useNavigation<any>();
-
-  const [courses, setCourses] = useState<Course[]>([]);
-
-  useEffect(() => {
-    loadCourses();
-  }, []);
-
-  async function loadCourses() {
-    const data = await getTeacherCourses();
-    setCourses(data);
-  }
+  const { courses } = useTeacherCourses();
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
