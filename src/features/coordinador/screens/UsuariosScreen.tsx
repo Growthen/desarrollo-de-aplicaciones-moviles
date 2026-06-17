@@ -25,9 +25,19 @@ export default function UsuariosScreen() {
     }
   };
 
-  useEffect(() => {
+ useEffect(() => {
+    // 1. Cargamos los usuarios la primera vez
     fetchUsers();
-  }, []);
+
+    // 2. Creamos un "vigilante" para que los vuelva a cargar CADA VEZ que regreses a esta pantalla
+    const unsubscribe = navigation.addListener('focus', () => {
+      console.log("Pantalla enfocada: Recargando lista de usuarios...");
+      fetchUsers();
+    });
+
+    // 3. Limpiamos el vigilante para que no haya fugas de memoria
+    return unsubscribe;
+  }, [navigation]);
 
   const getInitials = (name: string) => {
     if (!name) return "U";
@@ -86,11 +96,19 @@ export default function UsuariosScreen() {
             </Text>
           </View>
         ) : (
-          <ScrollView style={styles.listContainer} contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false}>
+<ScrollView style={styles.listContainer} contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false}>
             {filteredUsers.map((user) => {
               const isTeacher = user.role === "PROFESOR";
               return (
-                <Pressable key={user.id} style={styles.userCard}>
+                // 👇 AGREGAMOS EL ONDRESS AQUÍ PARA NAVEGAR A LA PANTALLA DE EDICIÓN 👇
+                <Pressable 
+                  key={user.id} 
+                  style={styles.userCard}
+                  onPress={() => {
+                    console.log("Navegando a editar usuario con ID:", user.id);
+                    navigation.navigate("CoordinadorEditarUsuario", { user: user });
+                  }}
+                >
                   <View style={[styles.cardIndicator, { backgroundColor: isTeacher ? COLORS.secondary : COLORS.primary }]} />
                   
                   <View style={styles.cardContent}>
@@ -129,16 +147,6 @@ export default function UsuariosScreen() {
           </ScrollView>
         )}
       </View>
-
-      {/* Floating Action Button (FAB) */}
-      <Pressable 
-        style={styles.fab}
-        onPress={() => {
-          navigation.navigate('CoordinadorRegistrarUsuario');
-        }}
-      >
-        <MaterialIcons name="add" size={28} color={COLORS.onPrimaryContainer} />
-      </Pressable>
     </SafeAreaView>
   );
 }
@@ -303,20 +311,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
   },
-  fab: {
-    position: "absolute",
-    bottom: Platform.OS === 'ios' ? 100 : 80, // Above tab bar
-    right: 24,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: COLORS.primaryContainer,
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: COLORS.onSurface,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.06,
-    shadowRadius: 32,
-    elevation: 6,
-  },
+
 });

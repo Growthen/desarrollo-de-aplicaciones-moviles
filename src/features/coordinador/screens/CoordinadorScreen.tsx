@@ -1,29 +1,79 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, View, Text, ScrollView, Pressable, Image, SafeAreaView, Platform, StatusBar, ActivityIndicator } from "react-native";
+import { StyleSheet, View, Text, ScrollView, Pressable, SafeAreaView, Platform, StatusBar, ActivityIndicator, Modal, Animated, TouchableWithoutFeedback } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { COLORS } from "@/shared";
 import useAuth from "@/features/auth/hooks/useAuth";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import api from "@/features/auth/services/auth";
 
 export default function CoordinadorScreen() {
   const { user } = useAuth();
   const navigation = useNavigation<any>();
+  const route = useRoute();
+  
   const [metrics, setMetrics] = useState({
     students: 0,
     teachers: 0,
     parents: 0,
   });
+  
+  // 1. Estado para guardar los cursos
+  const [recentCourses, setRecentCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchMetrics = async () => {
+  // --- LÓGICA DEL MENÚ HAMBURGUESA PERSONALIZADO ---
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const slideAnim = React.useRef(new Animated.Value(-300)).current; 
+
+  const toggleMenu = () => {
+    if (isMenuOpen) {
+      Animated.timing(slideAnim, {
+        toValue: -300,
+        duration: 250,
+        useNativeDriver: true,
+      }).start(() => setIsMenuOpen(false));
+    } else {
+      setIsMenuOpen(true);
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 250,
+        useNativeDriver: true,
+      }).start();
+    }
+  };
+  // --------------------------------------------------
+
+  const getScreenTitle = () => {
+    switch (route.name) {
+      case 'CoordinadorDashboard': return 'Inicio';
+      case 'CoordinadorCursos': return 'Cursos';
+      case 'CoordinadorUsuarios': return 'Usuarios';
+      default: return 'TRILCE';
+    }
+  };
+
+  // 2. useEffect actualizado para traer métricas Y cursos juntos
+useEffect(() => {
+    const fetchMetricsAndCourses = async () => {
       try {
         setLoading(true);
-        const [studentsRes, teachersRes, parentsRes] = await Promise.all([
-          api.get("/api/students"),
-          api.get("/api/users/teachers"),
-          api.get("/api/users/parents"),
+
+        // 🛡️ Función escudo: Si una ruta falla en el backend, atrapa el error y devuelve un arreglo vacío
+        const safeGet = async (url: string) => {
+          try {
+            return await api.get(url);
+          } catch (error) {
+            console.log(`⚠️ El backend falló en la ruta: ${url}`);
+            return { data: { data: [] } };
+          }
+        };
+
+        // Ahora usamos nuestra función segura en lugar de api.get directamente
+        const [studentsRes, teachersRes, parentsRes, coursesRes] = await Promise.all([
+          safeGet("/api/students"),
+          safeGet("/api/users/teachers"),
+          safeGet("/api/users/parents"),
+          safeGet("/api/classes"),
         ]);
 
         setMetrics({
@@ -31,18 +81,22 @@ export default function CoordinadorScreen() {
           teachers: teachersRes.data?.data ? teachersRes.data.data.length : 0,
           parents: parentsRes.data?.data ? parentsRes.data.data.length : 0,
         });
+
+        if (coursesRes.data?.data) {
+          setRecentCourses(coursesRes.data.data);
+        }
       } catch (error) {
-        console.error("Error fetching coordinator metrics:", error);
+        console.error("Error general en el dashboard:", error);
       } finally {
         setLoading(false);
       }
     };
 
     const unsubscribe = navigation.addListener("focus", () => {
-      fetchMetrics();
+      fetchMetricsAndCourses();
     });
 
-    fetchMetrics();
+    fetchMetricsAndCourses();
 
     return unsubscribe;
   }, [navigation]);
@@ -51,18 +105,19 @@ export default function CoordinadorScreen() {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.surface} />
       
-      {/* TopAppBar Custom */}
+      {/* Top Bar */}
       <View style={styles.header}>
-        <Pressable 
-          style={styles.iconButton} 
-          onPress={() => {/* TODO: Open Drawer or Menu */}}
-        >
+        <Pressable style={styles.iconButton} onPress={toggleMenu}>
           <MaterialIcons name="menu" size={24} color={COLORS.primary} />
         </Pressable>
-        <Text style={styles.headerTitle}>TRILCE</Text>
-        <View style={styles.profileIcon}>
+        <Text style={styles.headerTitle}>{getScreenTitle()}</Text>
+        
+        <Pressable 
+          style={styles.profileIcon}
+          onPress={() => navigation.navigate('Configuration')}
+        >
           <MaterialIcons name="person" size={24} color={COLORS.primary} />
-        </View>
+        </Pressable>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -74,7 +129,6 @@ export default function CoordinadorScreen() {
 
         {/* Metrics Grid */}
         <View style={styles.metricsContainer}>
-          {/* Alumnos Matriculados */}
           <View style={[styles.metricCard, styles.metricCardPrimary]}>
             <View style={[styles.cardIndicator, { backgroundColor: COLORS.primary }]} />
             <View style={styles.metricCardContent}>
@@ -92,7 +146,6 @@ export default function CoordinadorScreen() {
             </View>
           </View>
 
-          {/* Profesores Activos */}
           <View style={styles.metricCard}>
             <View style={[styles.cardIndicator, { backgroundColor: COLORS.secondary }]} />
             <View style={styles.metricCardContentSmall}>
@@ -110,7 +163,6 @@ export default function CoordinadorScreen() {
             </View>
           </View>
 
-          {/* Padres Activos */}
           <View style={styles.metricCard}>
             <View style={[styles.cardIndicator, { backgroundColor: COLORS.tertiaryContainer }]} />
             <View style={styles.metricCardContentSmall}>
@@ -151,182 +203,115 @@ export default function CoordinadorScreen() {
           </View>
         </View>
 
+        {/* 3. NUEVA SECCIÓN: LISTA DE CURSOS EN EL DASHBOARD */}
+        <View style={styles.coursesSection}>
+          <Text style={styles.sectionTitle}>Cursos Activos</Text>
+          
+          {loading ? (
+            <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 20 }} />
+          ) : recentCourses.length === 0 ? (
+            <View style={styles.emptyState}>
+              <MaterialIcons name="school" size={48} color={COLORS.surfaceVariant} />
+              <Text style={styles.emptyStateText}>No hay cursos registrados aún.</Text>
+            </View>
+          ) : (
+            recentCourses.map((course) => (
+              <Pressable 
+                key={course.id} 
+                style={styles.courseItem}
+                onPress={() => {
+                  console.log("Navegar a detalle del curso:", course.id);
+                  
+                  navigation.navigate('CoordinadorDetalleCurso', { courseId: course.id });
+                }}
+              >
+                <View style={styles.courseIcon}>
+                  <MaterialIcons name="class" size={24} color={COLORS.primary} />
+                </View>
+                <View style={styles.courseInfo}>
+                  <Text style={styles.courseName} numberOfLines={1}>{course.name}</Text>
+                  <Text style={styles.courseId}>ID del Curso: {course.id}</Text>
+                </View>
+                <MaterialIcons name="chevron-right" size={24} color={COLORS.onSurfaceVariant} />
+              </Pressable>
+            ))
+          )}
+        </View>
+
       </ScrollView>
+
+      {/* MENÚ HAMBURGUESA PERSONALIZADO */}
+      <Modal visible={isMenuOpen} transparent={true} animationType="none" onRequestClose={toggleMenu}>
+        <View style={styles.modalOverlay}>
+          <TouchableWithoutFeedback onPress={toggleMenu}>
+            <View style={styles.modalBackground} />
+          </TouchableWithoutFeedback>
+          
+          <Animated.View style={[styles.drawerMenu, { transform: [{ translateX: slideAnim }] }]}>
+            <View style={styles.drawerHeader}>
+              <Text style={styles.drawerTitle}>TRILCE Menú</Text>
+              <Text style={styles.drawerSubtitle}>Gestión Académica</Text>
+            </View>
+            
+            <Pressable 
+              style={styles.drawerItem} 
+              onPress={() => { toggleMenu(); navigation.navigate('Configuration'); }}
+            >
+              <MaterialIcons name="settings" size={24} color={COLORS.primary} />
+              <Text style={styles.drawerItemText}>Configuración del Sistema</Text>
+            </Pressable>
+          </Animated.View>
+        </View>
+      </Modal>
+
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: COLORS.surface,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    backgroundColor: COLORS.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.surfaceContainerHigh,
-  },
-  iconButton: {
-    padding: 8,
-    borderRadius: 20,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: COLORS.primary,
-    fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
-  },
-  profileIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: COLORS.surfaceContainerHigh,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  scrollContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 32,
-    paddingTop: 24,
-  },
-  sectionHeader: {
-    marginBottom: 32,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: "600",
-    color: COLORS.onSurface,
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: COLORS.onSurfaceVariant,
-  },
-  metricsContainer: {
-    flexDirection: "column",
-    gap: 16,
-    marginBottom: 48,
-  },
-  metricCard: {
-    backgroundColor: COLORS.surfaceContainerLowest,
-    borderRadius: 12,
-    padding: 20,
-    overflow: "hidden",
-    position: "relative",
-    shadowColor: COLORS.onSurface,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
-    elevation: 3,
-  },
-  metricCardPrimary: {
-    paddingVertical: 24,
-  },
-  cardIndicator: {
-    position: "absolute",
-    left: 0,
-    top: 0,
-    bottom: 0,
-    width: 4,
-  },
-  metricCardContent: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-  },
-  metricLabel: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: COLORS.onSurfaceVariant,
-    letterSpacing: 1,
-    marginBottom: 4,
-  },
-  metricValueLarge: {
-    fontSize: 56,
-    fontWeight: "bold",
-    color: COLORS.onSurface,
-    letterSpacing: -1,
-  },
-  metricIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  metricCardContentSmall: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  metricIconContainerSmall: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  metricValueSmall: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: COLORS.onSurface,
-  },
-  quickActionsSection: {
-    marginBottom: 48,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: "600",
-    color: COLORS.onSurface,
-    marginBottom: 24,
-  },
-  actionsRow: {
-    flexDirection: "row",
-    gap: 16,
-  },
-  actionButton: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    borderRadius: 30,
-    shadowColor: COLORS.onSurface,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-    gap: 8,
-  },
-  actionButtonText: {
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  imageContainer: {
-    width: "100%",
-    height: 192,
-    borderRadius: 12,
-    overflow: "hidden",
-    position: "relative",
-    marginBottom: 32,
-  },
-  backgroundImage: {
-    width: "100%",
-    height: "100%",
-    opacity: 0.6,
-  },
-  imageOverlay: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: "50%",
-    backgroundColor: COLORS.surface,
-    opacity: 0.3,
-  },
+  safeArea: { flex: 1, backgroundColor: COLORS.surface },
+  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 16, paddingVertical: 16, backgroundColor: COLORS.surface, borderBottomWidth: 1, borderBottomColor: COLORS.surfaceContainerHigh },
+  iconButton: { padding: 8, borderRadius: 20 },
+  headerTitle: { fontSize: 24, fontWeight: "bold", color: COLORS.primary, fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto' },
+  profileIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.surfaceContainerHigh, justifyContent: "center", alignItems: "center" },
+  scrollContent: { paddingHorizontal: 16, paddingBottom: 32, paddingTop: 24 },
+  sectionHeader: { marginBottom: 32 },
+  title: { fontSize: 32, fontWeight: "600", color: COLORS.onSurface, marginBottom: 8 },
+  subtitle: { fontSize: 16, color: COLORS.onSurfaceVariant },
+  metricsContainer: { flexDirection: "column", gap: 16, marginBottom: 48 },
+  metricCard: { backgroundColor: COLORS.surfaceContainerLowest, borderRadius: 12, padding: 20, overflow: "hidden", position: "relative", shadowColor: COLORS.onSurface, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 12, elevation: 3 },
+  metricCardPrimary: { paddingVertical: 24 },
+  cardIndicator: { position: "absolute", left: 0, top: 0, bottom: 0, width: 4 },
+  metricCardContent: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
+  metricLabel: { fontSize: 12, fontWeight: "600", color: COLORS.onSurfaceVariant, letterSpacing: 1, marginBottom: 4 },
+  metricValueLarge: { fontSize: 56, fontWeight: "bold", color: COLORS.onSurface, letterSpacing: -1 },
+  metricIconContainer: { width: 48, height: 48, borderRadius: 24, justifyContent: "center", alignItems: "center" },
+  metricCardContentSmall: { flexDirection: "row", alignItems: "center" },
+  metricIconContainerSmall: { width: 40, height: 40, borderRadius: 20, justifyContent: "center", alignItems: "center" },
+  metricValueSmall: { fontSize: 24, fontWeight: "bold", color: COLORS.onSurface },
+  quickActionsSection: { marginBottom: 48 },
+  sectionTitle: { fontSize: 20, fontWeight: "600", color: COLORS.onSurface, marginBottom: 24 },
+  actionsRow: { flexDirection: "row", gap: 16 },
+  actionButton: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 16, paddingHorizontal: 16, borderRadius: 30, shadowColor: COLORS.onSurface, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 4, gap: 8 },
+  actionButtonText: { fontSize: 14, fontWeight: "600" },
+  
+  // Estilos del Menú Hamburguesa Custom (NO BORRAR)
+  modalOverlay: { flex: 1, flexDirection: 'row' },
+  modalBackground: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.5)' },
+  drawerMenu: { width: 280, backgroundColor: COLORS.surface, height: '100%', paddingTop: Platform.OS === 'ios' ? 50 : 30, paddingHorizontal: 20, elevation: 10, shadowColor: '#000', shadowOffset: { width: 5, height: 0 }, shadowOpacity: 0.3, shadowRadius: 10 },
+  drawerHeader: { borderBottomWidth: 1, borderBottomColor: COLORS.surfaceVariant, paddingBottom: 20, marginBottom: 20, marginTop: 20 },
+  drawerTitle: { fontSize: 24, fontWeight: 'bold', color: COLORS.primary },
+  drawerSubtitle: { fontSize: 14, color: COLORS.onSurfaceVariant, marginTop: 5 },
+  drawerItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.05)' },
+  drawerItemText: { fontSize: 16, marginLeft: 15, color: COLORS.onSurface, fontWeight: '500' },
+
+  // Estilos de la Nueva Lista de Cursos
+  coursesSection: { marginBottom: 40 },
+  courseItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.surfaceContainerLowest, padding: 16, borderRadius: 12, marginBottom: 12, shadowColor: COLORS.onSurface, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
+  courseIcon: { width: 48, height: 48, borderRadius: 24, backgroundColor: COLORS.primaryContainer, justifyContent: 'center', alignItems: 'center', marginRight: 16 },
+  courseInfo: { flex: 1 },
+  courseName: { fontSize: 16, fontWeight: 'bold', color: COLORS.onSurface, marginBottom: 4 },
+  courseId: { fontSize: 12, color: COLORS.onSurfaceVariant },
+  emptyState: { alignItems: 'center', justifyContent: 'center', padding: 32, backgroundColor: COLORS.surfaceContainerLowest, borderRadius: 12, borderStyle: 'dashed', borderWidth: 1, borderColor: COLORS.surfaceVariant },
+  emptyStateText: { marginTop: 12, fontSize: 14, color: COLORS.onSurfaceVariant, textAlign: 'center' },
 });
