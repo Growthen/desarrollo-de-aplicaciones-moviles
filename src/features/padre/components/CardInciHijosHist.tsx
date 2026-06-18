@@ -3,7 +3,7 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Pressable, View, StyleSheet, Text } from "react-native";
 
 import { useState } from "react";
-import { formatFecha, type IconIncidencia } from "../mockIncidencias";
+import {  ActuInciaLeida, type IconIncidencia } from "../services/Incident.service";
 
 export type CardInciHijosHistProps = {
     icon: IconIncidencia;
@@ -18,8 +18,9 @@ export type CardInciHijosHistProps = {
     descripcion: string;
     estado: "NO_LEIDA" | "LEIDA"; //boolean? cambiar
     
+    onEstadoCambiado?: (id: number, nuevoEstado: "NO_LEIDA" | "LEIDA") => Promise<void>; //test para shadows y status y asi
     onPress?: () => void; //no devuelve nada 
-    onEstadoCambiado?: (id: number, nuevoEstado: "NO_LEIDA" | "LEIDA") => void; //test para shadows y status y asi
+    
     
 };
 
@@ -35,27 +36,30 @@ export default function CardInciHijosHist({icon, iconbgcolor, id, iconcolor, tit
   estado, onPress, onEstadoCambiado} : CardInciHijosHistProps){
     //estado local que viene con del componente padre (cardincihijos) permite cambios visuales sin backend
     //por el momento
-    const [statusLocal, setEstatusLocal] = useState<"NO_LEIDA" | "LEIDA">(estado);
+    //const [statusLocal, setEstatusLocal] = useState<"NO_LEIDA" | "LEIDA">(estado);
 
     const truncateText = (text: string, maxLength: number): string => {
         return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
     };
 
-    function handleOnPress(){ //para q al presionar pase a leida
-      if(statusLocal === "NO_LEIDA"){
-        const newStatus= "LEIDA";
-        setEstatusLocal(newStatus);
-        //este estado hace q el componente padre actualice los contadores pending solved
-        onEstadoCambiado?.(id, newStatus)
+    async function handleOnPress(){ //para q al presionar pase a leida
+      if(estado === "NO_LEIDA"){
+          //esto notifica al componente padre de este
+          //await ActuInciaLeida(id);
+          //const newStatus= "LEIDA";
+          //setEstatusLocal(newStatus);
+          //este estado hace q el componente padre actualice los contadores pending solved
+          await onEstadoCambiado?.(id, "LEIDA") //newStatus
+        
       }
       onPress?.();
     }
 
     return(
         <Pressable onPress={handleOnPress} style={({pressed}) => [styles.cardContenido, 
-            { borderLeftColor: ObtenerBorderxStatus(statusLocal), 
-              borderRightColor: ObtenerBorderxStatus(statusLocal),
-              boxShadow: `0px 1px 4px ${ObtenerShadowxStatus(statusLocal)}`}, pressed && 
+            { borderLeftColor: ObtenerBorderxStatus(estado), 
+              borderRightColor: ObtenerBorderxStatus(estado),
+              boxShadow: `0px 1px 4px ${ObtenerShadowxStatus(estado)}`}, pressed && 
             styles.cardContenidoPressed
         ]}>
             <View style={styles.cardColumnContenido}> 
@@ -74,7 +78,7 @@ export default function CardInciHijosHist({icon, iconbgcolor, id, iconcolor, tit
                         </ThemedText>
 
                         <ThemedText type="body" color="onSurfaceVariant" style={styles.cardHeaderprof}>
-                            {profesor} ⤷ {formatFecha(fecha)}
+                            {profesor} ⤷ {fecha}
                         </ThemedText>
 
                     </View>

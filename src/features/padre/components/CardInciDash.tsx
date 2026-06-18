@@ -2,8 +2,6 @@
 import { COLORS, ThemedText } from "@/shared";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Pressable, View, StyleSheet } from "react-native";
-import { formatFecha } from "../mockIncidencias";
-
 //tipo de los props, define q datos necesita el componente para funcionar
 //icono(?, titulo, fecha, profesor, descripcion, estado leido no leido, nombre alumno
 //incidencias: alteracion del orden, medica, tardanza
@@ -57,7 +55,7 @@ export default function CardInciDash({icon, iconbgcolor, iconcolor, titulo, fech
                         </ThemedText>
 
                         <ThemedText type="body" color="onSurfaceVariant" style={styles.cardHeaderprof}>
-                            {profesor} ⤷ {formatFecha(fecha)}
+                            {profesor} ⤷ {fecha}
                         </ThemedText>
 
                     </View>

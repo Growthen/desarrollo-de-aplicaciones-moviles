@@ -1,13 +1,13 @@
-
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import PadreHijosScreen from "../screens/PadreHijosScreen"; 
 import PadreInciHijoDetail from "../screens/PadreInciHijoDetail";
-import type { Incidencia } from "../mockIncidencias";
+import { InciDetailParams } from "./types/PadreNavigation.types";
+
 
 //parametros de cada ruta del stack
 export type PadreHijosStackParams = {
     PadreHijosHome: undefined; //sin parametros
-    inciDetail: {incidencia: Incidencia;}; //details recibe la incidencia completa
+    inciDetail: InciDetailParams; //details recibe la incidencia completa
 };
 
 const Stack = createNativeStackNavigator<PadreHijosStackParams>();

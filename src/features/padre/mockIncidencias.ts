@@ -51,9 +51,9 @@ export function ObtenerIconxTitulo(titulo: string): IconColoresInci {
 }
 
 //formatear fecha en front
-export function formatFecha(isoString: string): string {
-  const fecha = new Date(isoString);
-  return fecha.toLocaleDateString("es-PE", {
+export function formatFecha(fecha: string): string {
+  const fechanueva = new Date(fecha);
+  return fechanueva.toLocaleDateString("es-PE", {
     day: "2-digit", month: "2-digit", year: "numeric",
     hour: "2-digit", minute: "2-digit", hour12: false,
   });
