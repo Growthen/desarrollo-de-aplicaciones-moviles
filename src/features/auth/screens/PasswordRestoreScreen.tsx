@@ -21,6 +21,8 @@ import { changePasswordService } from "@/features/auth/services/auth";
 export default function PasswordRestoreScreen() {
   const navigation = useNavigation();
   const [showPassword, setShowPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -28,8 +30,10 @@ export default function PasswordRestoreScreen() {
 
   const [focusedField, setFocusedField] = useState<string | null>(null);
 
-  // No logic requested, just UI states.
   const handleTogglePassword = () => setShowPassword((prev) => !prev);
+  const handleToggleNewPassword = () => setShowNewPassword((prev) => !prev);
+  const handleToggleConfirmPassword = () =>
+    setShowConfirmPassword((prev) => !prev);
 
   const handleSubmit = async () => {
     if (!currentPassword.trim()) {
@@ -188,15 +192,26 @@ export default function PasswordRestoreScreen() {
                   style={styles.inputIcon}
                 />
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, styles.inputPassword]}
                   placeholder="Crea una clave fuerte"
                   placeholderTextColor={COLORS.outline}
                   value={newPassword}
                   onChangeText={setNewPassword}
-                  secureTextEntry
+                  secureTextEntry={!showNewPassword}
                   onFocus={() => setFocusedField("new")}
                   onBlur={() => setFocusedField(null)}
                 />
+                <Pressable
+                  onPress={handleToggleNewPassword}
+                  style={styles.eyeButton}
+                  hitSlop={8}
+                >
+                  <MaterialIcons
+                    name={showNewPassword ? "visibility" : "visibility-off"}
+                    size={20}
+                    color={COLORS.outline}
+                  />
+                </Pressable>
               </View>
             </View>
 
@@ -215,15 +230,26 @@ export default function PasswordRestoreScreen() {
                   style={styles.inputIcon}
                 />
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, styles.inputPassword]}
                   placeholder="Repite tu nueva clave"
                   placeholderTextColor={COLORS.outline}
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
-                  secureTextEntry
+                  secureTextEntry={!showConfirmPassword}
                   onFocus={() => setFocusedField("confirm")}
                   onBlur={() => setFocusedField(null)}
                 />
+                <Pressable
+                  onPress={handleToggleConfirmPassword}
+                  style={styles.eyeButton}
+                  hitSlop={8}
+                >
+                  <MaterialIcons
+                    name={showConfirmPassword ? "visibility" : "visibility-off"}
+                    size={20}
+                    color={COLORS.outline}
+                  />
+                </Pressable>
               </View>
             </View>
 

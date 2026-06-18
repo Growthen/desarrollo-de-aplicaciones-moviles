@@ -1,41 +1,20 @@
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
-import { useEffect, useState, useCallback } from "react";
-import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 
 import ThemedText from "@/shared/components/ThemedText";
 import { COLORS } from "@/shared/constants/colors";
 import { useAuth } from "@/features/auth";
 
-import { Course, Incidence } from "../types/types";
-import { getTeacherCourses } from "../services/courseService";
-import { getIncidences } from "../services/incidenceService";
-function truncateText(text: string, maxLength: number) {
-  return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
-}
+import { useTeacherCourses } from "../hooks/useTeacherCourses";
+import { useTeacherIncidences } from "../hooks/useTeacherIncidences";
+import CourseSummaryCard from "../components/CourseSummaryCard";
+import IncidentCard from "../components/IncidentCard";
 
 export default function ProfesorScreen() {
   const navigation = useNavigation<any>();
   const { user } = useAuth();
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [incidences, setIncidences] = useState<Incidence[]>([]);
-
-  useFocusEffect(
-    useCallback(() => {
-      loadData();
-    }, []),
-  );
-
-  async function loadData() {
-    try {
-      const coursesData = await getTeacherCourses();
-      const incidencesData = await getIncidences();
-
-      setCourses(coursesData);
-      setIncidences(incidencesData);
-    } catch (error) {
-      console.error("Error cargando dashboard:", error);
-    }
-  }
+  const { courses } = useTeacherCourses();
+  const { incidences } = useTeacherIncidences();
 
   return (
     <View style={styles.container}>
@@ -52,21 +31,11 @@ export default function ProfesorScreen() {
           </ThemedText>
 
           {courses.slice(0, 3).map((item) => (
-            <View key={item.id} style={styles.courseCard}>
-              <View style={styles.courseBadge}>
-                <ThemedText type="label" color="onPrimary">
-                  Curso
-                </ThemedText>
-              </View>
-
-              <ThemedText type="button" style={styles.courseTitle}>
-                {item.title}
-              </ThemedText>
-
-              <ThemedText type="body" style={styles.courseSubtitle}>
-                {item.subtitle}
-              </ThemedText>
-            </View>
+            <CourseSummaryCard
+              key={item.id}
+              course={item}
+              onPress={() => navigation.navigate("ProfesorClases")}
+            />
           ))}
 
           <Pressable onPress={() => navigation.navigate("ProfesorClases")}>
@@ -81,29 +50,14 @@ export default function ProfesorScreen() {
             Historial de incidencias
           </ThemedText>
           {incidences.map((incident) => (
-            <Pressable
+            <IncidentCard
               key={incident.id}
-              style={styles.incidentCard}
+              incident={incident}
+              maxDescriptionLength={90}
               onPress={() =>
                 navigation.navigate("IncidenceDetail", { incident })
               }
-            >
-              <View style={styles.incidentHeader}>
-                <ThemedText type="button" style={styles.incidentTitle}>
-                  {incident.title}
-                </ThemedText>
-                <ThemedText type="label" style={styles.incidentStatus}>
-                  {incident.status}
-                </ThemedText>
-              </View>
-              <ThemedText type="body" style={styles.incidentDescription}>
-                {truncateText(incident.description, 90)}
-              </ThemedText>
-              <View style={styles.incidentFooter}>
-                <ThemedText type="label">{incident.course}</ThemedText>
-                <ThemedText type="label">{incident.student}</ThemedText>
-              </View>
-            </Pressable>
+            />
           ))}
         </View>
       </ScrollView>
@@ -142,36 +96,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 6,
   },
-  incidentCard: {
-    backgroundColor: COLORS.surfaceContainerLowest,
-    borderRadius: 18,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: COLORS.surfaceContainerHigh,
-    gap: 10,
-  },
-  incidentHeader: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-  },
-  incidentTitle: {
-    flex: 1,
-    color: COLORS.onSurface,
-    marginRight: 10,
-  },
-  incidentStatus: {
-    color: COLORS.secondary,
-    fontSize: 12,
-  },
-  incidentDescription: {
-    color: COLORS.onSurfaceVariant,
-    lineHeight: 20,
-  },
-  incidentFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 8,
-  },
   fab: {
     position: "absolute",
     right: 20,
@@ -181,34 +105,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     borderRadius: 999,
     elevation: 4,
-  },
-  logout: {
-    position: "absolute",
-    left: 20,
-    bottom: 24,
-  },
-  courseCard: {
-    backgroundColor: COLORS.surfaceContainerLowest,
-    borderRadius: 18,
-    padding: 18,
-    borderWidth: 1,
-    borderColor: COLORS.surfaceContainerHigh,
-    gap: 10,
-  },
-
-  courseBadge: {
-    alignSelf: "flex-start",
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 999,
-  },
-
-  courseTitle: {
-    color: COLORS.onSurface,
-  },
-
-  courseSubtitle: {
-    color: COLORS.onSurfaceVariant,
   },
 });
