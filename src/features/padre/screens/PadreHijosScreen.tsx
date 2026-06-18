@@ -1,49 +1,29 @@
 import { Text, View, StyleSheet, ScrollView, Image } from "react-native";
 
 import { useAuth } from "@/features/auth";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { COLORS, ThemedText } from "@/shared";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import CardInciHijos from "../components/CardInciHijos";
-import { MOCK_HIJOS } from "../mockIncidencias";
-import type { Incidencia } from "../mockIncidencias";
 
 //backend
 import { ObtenerHijos, StudentResponse } from "../services/Student.service";
-import { ObtenerInciporEstudianteUI, ActuInciaLeida } from "../services/Incident.service";
+import { ObtenerInciporEstudianteUI, ActuInciaLeida, Incidencia } from "../services/Incident.service";
+import { useloadDatos } from "../hooks/CargarDatos";
+import { useFocusEffect } from "@react-navigation/native";
 
 export default function PadreHijosScreen(){
 
-    const { user} = useAuth();
-   
-    /*
-    //estado central, inicializa desde el mock, temporal
-    const [incixHijo, setIncixHijo] = useState<Record<number, Incidencia[]>>(
-      () => Object.fromEntries(MOCK_HIJOS.map((h) => [h.id, h.inci]))
-    );
-
-    //ligado al onestadocambiado de cardincihijoshist, sube y actualiza
-    function handleStatusCambio(hijoId: number, inciId: number, nuevoStatus: "NO_LEIDA" | "LEIDA"){
-      setIncixHijo((prev) => ({
-        ...prev, [hijoId]: prev[hijoId].map((i) => i.id === inciId ? {...i, estado: nuevoStatus} : i)
-      }));
-    }*/
-   
+    const { user} = useAuth();  
 
     //para el backend seria useeffect
+    /*
     const [hijos, setHijos] = useState<StudentResponse[]>([]);
     const [incixHijo, setIncixHijo] = useState<Record<number, Incidencia[]>>({});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-
-    //totales para los badges del header
-    const inciTotales= Object.values(incixHijo).flat();
-    const pendingTotal= inciTotales.filter((i) => i.estado === "NO_LEIDA").length;
-    const solvedTotal= inciTotales.filter((i) => i.estado === "LEIDA").length;
-
-    useEffect(() => {
-      async function loadDatos(){
+    async function loadDatos(){
         try{
           const dataHijos= await ObtenerHijos();
           const inciMapeo: Record<number, Incidencia[]> = {};
@@ -60,11 +40,36 @@ export default function PadreHijosScreen(){
           setLoading(false);
         }
       }
+
+    useEffect(() => {
       loadDatos();
     }, []);
+     */
+    const {hijos, IncidenciasxHijo, loading, error, cargarDatos} = useloadDatos(); 
+
+    useFocusEffect( useCallback ( () => {
+        cargarDatos();},
+        [cargarDatos]
+    ));
+
+    //totales para los badges del header
+    const inciTotales= Object.values(IncidenciasxHijo).flat();
+    const pendingTotal= inciTotales.filter((i) => i.estado === "NO_LEIDA").length;
+    const solvedTotal= inciTotales.filter((i) => i.estado === "LEIDA").length;
 
     async function handleStatusCambio(hijoId: number, inciId: number, nuevoStatus: "NO_LEIDA" | "LEIDA") {
-      // actualiza local primero (optimistic update)
+      if(nuevoStatus !== "LEIDA") return;
+      //para q revise el backend y vuelva a recargar incidencias, mas q nada para sintonia
+      try{
+        await ActuInciaLeida(inciId);
+        //await cargarDatos();
+      } catch(error){
+        console.log(error);
+      }
+    }
+
+    /*
+    // actualiza local primero (optimistic update)
       setIncixHijo((prev) => ({ ...prev,[hijoId]: prev[hijoId].map((i) =>
           i.id === inciId ? { ...i, estado: nuevoStatus } : i),
       }));
@@ -79,8 +84,7 @@ export default function PadreHijosScreen(){
           }));
         }
       }
-    }
-
+    */ 
     return(
         <View style={styles.root}>
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -131,7 +135,7 @@ export default function PadreHijosScreen(){
                     {/*tarjetas dependiendo si son uno o dos hijos */}
                     <View style={styles.contHijos}>
                         {hijos.map((hijo) => {
-                          const inciDeNHijo= incixHijo[hijo.id] ?? [];
+                          const inciDeNHijo= IncidenciasxHijo[hijo.id] ?? [];
                           const pending= inciDeNHijo.filter((i) => i.estado === "NO_LEIDA").length;
                           const solved= inciDeNHijo.filter((i) => i.estado === "LEIDA").length;
 

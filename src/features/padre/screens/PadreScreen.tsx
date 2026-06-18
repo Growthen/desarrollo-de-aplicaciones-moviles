@@ -4,16 +4,15 @@ import { useAuth } from "@/features/auth";
 import { COLORS, ThemedText } from "@/shared";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import CardInciDash from "../components/CardInciDash";
-import { MOCK_HIJOS } from "../mockIncidencias";
-import type { Incidencia } from "../mockIncidencias";
+import { useCallback } from "react";
 
-import { useEffect, useState } from "react";
-
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { PadreDashStackParams } from "../navigation/PadreDashStack";
-import { ObtenerHijos } from "../services/Student.service";
-import { ObtenerInciporEstudianteUI } from "../services/Incident.service";
+import type { PadreDashStackParams } from "../navigation/PadreDashStack";
+
+import { useloadDatos } from "../hooks/CargarDatos";
+import { ActuInciaLeida, Incidencia } from "../services/Incident.service";
+
 
 const card_inci_dash= 4;
 
@@ -23,42 +22,18 @@ export default function PadreScreen() {
     return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
   };
   //navigator
-  const nemonemo= useNavigation<NativeStackNavigationProp<PadreDashStackParams>>();
-
-  /* 
-
-  //estado central, pruebas mock
-  const [incixhijoD, setIncixHijoD] = useState<Record<number, Incidencia[]>>(
-    () => Object.fromEntries(MOCK_HIJOS.map((h) => [h.id, h.inci]))
-  );*/
+  const navigator= useNavigation<NativeStackNavigationProp<PadreDashStackParams>>();
   //ahora si backend, 
-  const [incixhijoD, setIncixHijoD] = useState<Record<number, Incidencia[]>>({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {IncidenciasxHijo, loading, error, cargarDatos} = useloadDatos();
 
-  useEffect(() => {
-    async function loadDatos(){
-      try {
-        const dataHijosDash = await ObtenerHijos();
-        const inciMapeoDash: Record<number, Incidencia[]> = {};
-
-        await Promise.all(
-          dataHijosDash.map(async (hijoD) => {
-            inciMapeoDash[hijoD.id] = await ObtenerInciporEstudianteUI(hijoD.id);
-          }) 
-        );
-        setIncixHijoD(inciMapeoDash);
-      } catch {
-        setError("No se pudieron cargar los datos" )
-      }finally {
-        setLoading(false);
-      }
-    }
-    loadDatos();
-  }, [])
+  useFocusEffect( useCallback( () => {
+    cargarDatos();},
+    [cargarDatos]
+  ));
+  
 
   //totales para los badges
-  const inciTotalesD= Object.values(incixhijoD).flat();
+  const inciTotalesD= Object.values(IncidenciasxHijo).flat();
   const pendingTotalD= inciTotalesD.filter((i) => i.estado === "NO_LEIDA").length;
   const solvedTotalD= inciTotalesD.filter((i) => i.estado === "LEIDA").length;
 
@@ -66,9 +41,29 @@ export default function PadreScreen() {
   const inciVisiDash= [...inciTotalesD].sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())
                       .slice(0, card_inci_dash);
 
+  async function handleStatusCambioDash(inci: Incidencia){
+    if (inci.estado === "NO_LEIDA") {
+      try {
+        await ActuInciaLeida(inci.id);
+        
+      } catch (error) {
+        console.log(error);
+      }
+    }
+
+    navigator.navigate("inciDetail", {
+      incidencia: {
+        ...inci,
+        estado: "LEIDA",
+      },
+    });
+  }
+                      
+
   
 
   return (
+    
     <View style={styles.root}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
@@ -116,7 +111,8 @@ export default function PadreScreen() {
             </ThemedText>
 
           </View>
-          {/*cards incidencias recientes 2 por n hijos, 4 por 1 hijo*/}
+          {/*cards incidencias recientes 2 por n hijos, 4 por 1 hijo
+          {() => navigator.navigate("inciDetail", {incidencia: inci})}*/}
           <View style={styles.contenidoCont}>
             {inciVisiDash.length === 0 ? (
               <ThemedText type="body" color="onSurface" style={styles.inciDashNotFoundText}>
@@ -124,7 +120,7 @@ export default function PadreScreen() {
               </ThemedText>
             ) : (
               inciVisiDash.map((inci) => (
-                <CardInciDash key={`${inci.nombre_alumno}-${inci.id}`}
+                <CardInciDash key={inci.id}
                   icon={inci.icon} iconcolor={inci.iconcolor} iconbgcolor={inci.iconbgcolor}
                   titulo={inci.titulo}
                   fecha={inci.fecha}
@@ -132,8 +128,8 @@ export default function PadreScreen() {
                   descripcion={truncateText(inci.descripcion, 102)}
                   estado= {inci.estado}
                   nombre_alumno={inci.nombre_alumno}
-                  onPress={() => nemonemo.navigate("inciDetail", {incidencia: inci})}
-                />
+                  
+                  onPress={() => handleStatusCambioDash(inci)}/>
               ))
             )}
 
@@ -145,23 +141,10 @@ export default function PadreScreen() {
           
         </View>
 
-        {/*fin contenido cards incidentes */}
+        {/*fin contenido cards incidentes `${inci.nombre_alumno}-${inci.id}`*/}
 
         
-        <Text>Hola, {user?.username || "usuario"}!</Text>
-        <Text style={{ color: "#888" }}>Rol: {user?.role}</Text>
-        <Pressable
-          onPress={logout}
-          style={{
-            marginTop: 20,
-            backgroundColor: "#E53935",
-            paddingVertical: 12,
-            paddingHorizontal: 24,
-            borderRadius: 8,
-          }}
-        >
-          <Text style={{ color: "#fff", fontWeight: "600" }}>Cerrar Sesión</Text>
-        </Pressable>
+        
       </ScrollView>
     </View>
   );

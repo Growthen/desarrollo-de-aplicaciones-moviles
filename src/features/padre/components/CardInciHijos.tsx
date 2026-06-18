@@ -2,7 +2,7 @@ import { COLORS, ThemedText } from "@/shared";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useState } from "react";
 import { Pressable, View, StyleSheet, Text } from "react-native";
-import type { Incidencia } from "../mockIncidencias";
+import type { Incidencia } from "../services/Incident.service";
 import CardInciHijosHist from "./CardInciHijosHist";
 
 import { useNavigation } from "@react-navigation/native";
@@ -29,7 +29,7 @@ export type CardInciHijosProps = {
     totalhijos: number;
     inci: Incidencia[]; //cambiar, mock array
     onPress?: () => void;
-    onEstadoCambiado?: (inciId: number, nuevoStatus: "NO_LEIDA" | "LEIDA") => void; //no devuelve nada 
+    onEstadoCambiado?: (inciId: number, nuevoStatus: "NO_LEIDA" | "LEIDA") => Promise<void>; //no devuelve nada 
     
 }
 
