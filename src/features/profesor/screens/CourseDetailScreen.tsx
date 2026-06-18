@@ -60,6 +60,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     backgroundColor: COLORS.background,
+    paddingTop: 60,
   },
 
   studentCard: {
