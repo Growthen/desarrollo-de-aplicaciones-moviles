@@ -1,22 +1,22 @@
-import React, { useState, useEffect } from "react";
-import {
-  StyleSheet,
-  View,
-  Text,
-  TextInput,
-  Pressable,
-  ScrollView,
-  Platform,
-  StatusBar,
-  KeyboardAvoidingView,
-  Alert,
-  ActivityIndicator,
+import React, { useState, useCallback } from "react";
+import { 
+  StyleSheet, 
+  View, 
+  Text, 
+  TextInput, 
+  Pressable, 
+  ScrollView, 
+  SafeAreaView, 
+  Platform, 
+  StatusBar, 
+  KeyboardAvoidingView, 
+  Alert, 
+  ActivityIndicator 
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { COLORS } from "@/shared";
-import { useNavigation } from "@react-navigation/native";
-import { getTeachers } from "@/features/coordinador/services/coordinadorService";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import api from "@/features/auth/services/auth";
 
 export default function CrearCursoScreen() {
   const navigation = useNavigation<any>();
@@ -28,27 +28,35 @@ export default function CrearCursoScreen() {
   const [showTeacherDropdown, setShowTeacherDropdown] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchTeachers = async () => {
-      try {
-        setLoading(true);
-        const data = await getTeachers();
-        setTeachers(data);
-      } catch (error) {
-        console.error("Error fetching teachers:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Reemplazamos useEffect por useFocusEffect para que limpie y actualice al entrar
+  useFocusEffect(
+    useCallback(() => {
+      // 1. Limpiamos los campos visuales
+      setCourseName("");
+      setSelectedTeacherId(null);
+      setShowTeacherDropdown(false);
 
-    const unsubscribe = navigation.addListener("focus", () => {
+      // 2. Traemos la lista fresca de profesores
+      const fetchTeachers = async () => {
+        try {
+          setLoading(true);
+          const res = await api.get("/api/users/teachers");
+          if (res.data?.data) {
+            setTeachers(res.data.data);
+          }
+        } catch (error) {
+          console.error("Error fetching teachers:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
+
       fetchTeachers();
-    });
 
-    fetchTeachers();
-
-    return unsubscribe;
-  }, [navigation]);
+      // Función de limpieza al salir de la pantalla
+      return () => {};
+    }, [])
+  );
 
   const selectedTeacherName =
     teachers.find((t) => t.id === selectedTeacherId)?.name || "";
@@ -101,7 +109,6 @@ export default function CrearCursoScreen() {
 
           {/* Form Section */}
           <View style={styles.formSection}>
-            {/* Abstract Background Element (Simulated with absolute positioning) */}
             <View style={styles.decorativeCircle} />
 
             {/* Course Name Input */}
@@ -111,7 +118,7 @@ export default function CrearCursoScreen() {
                 <TextInput
                   style={styles.input}
                   placeholder="ej: Introducción a la Programación"
-                  placeholderTextColor="rgba(91, 64, 56, 0.5)" // onSurfaceVariant with opacity
+                  placeholderTextColor="rgba(91, 64, 56, 0.5)"
                   value={courseName}
                   onChangeText={setCourseName}
                 />

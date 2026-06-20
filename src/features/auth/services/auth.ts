@@ -1,4 +1,4 @@
-import { create } from "axios";
+import axios from "axios"; // 1. Cambiamos la forma de importar
 import type {
   LoginRequest,
   RegisterRequest,
@@ -11,15 +11,16 @@ import type {
 } from "../types/auth.types";
 import { getToken } from "./token";
 
+// 2. IMPORTANTE: Cambia "192.168.1.X" por la IP real de tu laptop (la que sacas con ipconfig)
 const API_BASE_URL = "http://10.0.2.2:8080";
-//
-const api = create({
+
+// 3. Agregamos "axios." antes del create
+const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
 });
-
 api.interceptors.request.use(
   async (config) => {
     const token = await getToken();
