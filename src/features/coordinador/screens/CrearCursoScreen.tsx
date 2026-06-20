@@ -22,7 +22,9 @@ export default function CrearCursoScreen() {
   const navigation = useNavigation<any>();
   const [courseName, setCourseName] = useState("");
   const [teachers, setTeachers] = useState<any[]>([]);
-  const [selectedTeacherId, setSelectedTeacherId] = useState<number | null>(null);
+  const [selectedTeacherId, setSelectedTeacherId] = useState<number | null>(
+    null,
+  );
   const [showTeacherDropdown, setShowTeacherDropdown] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -56,16 +58,17 @@ export default function CrearCursoScreen() {
     }, [])
   );
 
-  const selectedTeacherName = teachers.find(t => t.id === selectedTeacherId)?.name || "";
+  const selectedTeacherName =
+    teachers.find((t) => t.id === selectedTeacherId)?.name || "";
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView edges={["left", "right", "bottom"]} style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.surface} />
-      
+
       {/* TopAppBar */}
       <View style={styles.header}>
-        <Pressable 
-          style={styles.iconButton} 
+        <Pressable
+          style={styles.iconButton}
           onPress={() => navigation.goBack()}
         >
           <MaterialIcons name="close" size={24} color={COLORS.primary} />
@@ -73,28 +76,41 @@ export default function CrearCursoScreen() {
         <Text style={styles.headerTitle}>TRILCE</Text>
         <View style={{ width: 40 }} />
       </View>
-      
-      <KeyboardAvoidingView 
-        style={{ flex: 1 }} 
+
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
           {/* Header Section */}
           <View style={styles.pageHeader}>
             <Text style={styles.title}>Crear Nuevo Curso</Text>
             <Text style={styles.subtitle}>Paso 1: Información del curso</Text>
-            
+
             {/* Progress Indicator */}
             <View style={styles.progressContainer}>
-              <View style={[styles.progressBar, { backgroundColor: COLORS.primary }]} />
-              <View style={[styles.progressBar, { backgroundColor: COLORS.surfaceVariant }]} />
+              <View
+                style={[
+                  styles.progressBar,
+                  { backgroundColor: COLORS.primary },
+                ]}
+              />
+              <View
+                style={[
+                  styles.progressBar,
+                  { backgroundColor: COLORS.surfaceVariant },
+                ]}
+              />
             </View>
           </View>
-          
+
           {/* Form Section */}
           <View style={styles.formSection}>
             <View style={styles.decorativeCircle} />
-            
+
             {/* Course Name Input */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Nombre del curso</Text>
@@ -108,37 +124,56 @@ export default function CrearCursoScreen() {
                 />
               </View>
             </View>
-            
+
             {/* Teacher Select */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Asignar Profesor</Text>
               {loading ? (
-                <ActivityIndicator size="small" color={COLORS.primary} style={{ alignSelf: 'flex-start' }} />
+                <ActivityIndicator
+                  size="small"
+                  color={COLORS.primary}
+                  style={{ alignSelf: "flex-start" }}
+                />
               ) : (
-                <Pressable 
+                <Pressable
                   style={styles.inputContainer}
                   onPress={() => setShowTeacherDropdown(!showTeacherDropdown)}
                 >
-                  <Text style={[styles.inputText, !selectedTeacherId && styles.placeholderText]}>
+                  <Text
+                    style={[
+                      styles.inputText,
+                      !selectedTeacherId && styles.placeholderText,
+                    ]}
+                  >
                     {selectedTeacherName || "Seleccionar profesor"}
                   </Text>
-                  <MaterialIcons name="keyboard-arrow-down" size={24} color={COLORS.onSurfaceVariant} style={styles.dropdownIcon} />
+                  <MaterialIcons
+                    name="keyboard-arrow-down"
+                    size={24}
+                    color={COLORS.onSurfaceVariant}
+                    style={styles.dropdownIcon}
+                  />
                 </Pressable>
               )}
-              
+
               {showTeacherDropdown && (
                 <View style={styles.dropdownList}>
-                  <ScrollView nestedScrollEnabled={true} style={{ maxHeight: 150 }}>
+                  <ScrollView
+                    nestedScrollEnabled={true}
+                    style={{ maxHeight: 150 }}
+                  >
                     {teachers.map((t) => (
-                      <Pressable 
-                        key={t.id} 
+                      <Pressable
+                        key={t.id}
                         style={styles.dropdownItem}
                         onPress={() => {
                           setSelectedTeacherId(t.id);
                           setShowTeacherDropdown(false);
                         }}
                       >
-                        <Text style={styles.dropdownItemText}>{t.name} (DNI: {t.dni})</Text>
+                        <Text style={styles.dropdownItemText}>
+                          {t.name} (DNI: {t.dni})
+                        </Text>
                       </Pressable>
                     ))}
                   </ScrollView>
@@ -148,10 +183,10 @@ export default function CrearCursoScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-      
+
       {/* Fixed Bottom Action Area */}
       <View style={styles.bottomActionArea}>
-        <Pressable 
+        <Pressable
           style={styles.primaryButton}
           onPress={() => {
             if (!courseName.trim()) {
@@ -162,14 +197,20 @@ export default function CrearCursoScreen() {
               Alert.alert("Error", "Debe seleccionar un profesor");
               return;
             }
-            navigation.navigate('CoordinadorAsignarAlumnos', {
+            navigation.navigate("CoordinadorAsignarAlumnos", {
               courseName,
-              teacherId: selectedTeacherId
+              teacherId: selectedTeacherId,
             });
           }}
         >
-          <Text style={styles.primaryButtonText}>Siguiente: Asignar Alumnos</Text>
-          <MaterialIcons name="arrow-forward" size={20} color={COLORS.onPrimary} />
+          <Text style={styles.primaryButtonText}>
+            Siguiente: Asignar Alumnos
+          </Text>
+          <MaterialIcons
+            name="arrow-forward"
+            size={20}
+            color={COLORS.onPrimary}
+          />
         </Pressable>
       </View>
     </SafeAreaView>
@@ -199,7 +240,7 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
     flex: 1,
     textAlign: "center",
-    fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
+    fontFamily: Platform.OS === "ios" ? "System" : "Roboto",
   },
   scrollContent: {
     paddingHorizontal: 16,

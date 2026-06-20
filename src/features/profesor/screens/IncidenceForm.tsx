@@ -1,80 +1,53 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React from "react";
 import {
   Alert,
   KeyboardAvoidingView,
-  Modal,
   Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   TextInput,
   View,
-  FlatList,
-  TouchableOpacity,
   Text,
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 
+import BackButton from "@/shared/components/BackButton";
 import ThemedText from "@/shared/components/ThemedText";
 import { COLORS } from "@/shared/constants/colors";
 import { useAuth } from "@/features/auth";
 
+import SelectOptionModal from "../components/SelectOptionModal";
+import { useIncidenceForm } from "../hooks/useIncidenceForm";
 import { Course, Student } from "../types/types";
-import { getTeacherCourses } from "../services/courseService";
 import { createIncidence } from "../services/incidenceService";
-import { getStudentsByClass } from "../services/studentService";
 
 export default function IncidenceForm() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const { user } = useAuth();
 
   const selectedCourse = route.params?.course;
   const selectedStudent = route.params?.student;
 
-  const [title, setTitle] = useState("");
-  const [student, setStudent] = useState<Student | null>(
-    selectedStudent ?? null,
-  );
-
-  const [description, setDescription] = useState("");
-  const [course, setCourse] = useState<Course | null>(selectedCourse ?? null);
-  const [courses, setCourses] = useState<Course[]>([]);
-
-  const [students, setStudents] = useState<Student[]>([]);
-  const [courseModalVisible, setCourseModalVisible] = useState(false);
-  const [studentModalVisible, setStudentModalVisible] = useState(false);
-  const [studentQuery, setStudentQuery] = useState("");
-
-  useEffect(() => {
-    loadCourses();
-  }, []);
-
-  useEffect(() => {
-    if (selectedCourse) {
-      loadStudents(selectedCourse.id);
-    }
-  }, []);
-
-  async function loadCourses() {
-    const data = await getTeacherCourses();
-    setCourses(data);
-  }
-  async function loadStudents(classId: number) {
-    const data = await getStudentsByClass(classId);
-    setStudents(data);
-  }
-
-  const filteredStudents = useMemo(() => {
-    const q = studentQuery.trim().toLowerCase();
-
-    if (!q) return students;
-
-    return students.filter(
-      (s) =>
-        s.name.toLowerCase().includes(q) || s.dni.toLowerCase().includes(q),
-    );
-  }, [students, studentQuery]);
+  const {
+    title,
+    setTitle,
+    description,
+    setDescription,
+    course,
+    student,
+    courses,
+    filteredStudents,
+    courseModalVisible,
+    setCourseModalVisible,
+    studentModalVisible,
+    setStudentModalVisible,
+    studentQuery,
+    setStudentQuery,
+    selectCourse,
+    selectStudent,
+  } = useIncidenceForm(selectedCourse, selectedStudent);
 
   async function onSave() {
     if (!title || !student || !description || !course) {
@@ -88,7 +61,6 @@ export default function IncidenceForm() {
     const incidence = {
       title,
       description,
-
       studentId: Number(student.id),
       classId: Number(course.id),
     };
@@ -106,6 +78,7 @@ export default function IncidenceForm() {
       style={styles.container}
     >
       <ScrollView contentContainerStyle={styles.content}>
+        <BackButton />
         <ThemedText type="brandTitle">Nueva incidencia</ThemedText>
 
         <ThemedText type="label" style={{ marginTop: 12 }}>
@@ -129,47 +102,25 @@ export default function IncidenceForm() {
           </Text>
         </Pressable>
 
-        <Modal visible={courseModalVisible} animationType="slide" transparent>
-          <View style={styles.modalBackdrop}>
-            <View style={styles.modalContent}>
-              <ThemedText type="brandSubtitle">Selecciona un curso</ThemedText>
-              <FlatList
-                data={courses}
-                keyExtractor={(c) => c.id.toString()}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    onPress={async () => {
-                      setCourse(item);
-
-                      await loadStudents(item.id);
-
-                      setCourseModalVisible(false);
-                      setStudent(null);
-                      setStudentQuery("");
-                    }}
-                    style={styles.modalItem}
-                  >
-                    <ThemedText type="body">{item.title}</ThemedText>
-                  </TouchableOpacity>
-                )}
-              />
-              <Pressable
-                onPress={() => {
-                  if (course) setStudentModalVisible(true);
-                }}
-                style={styles.modalClose}
-              >
-                <ThemedText type="link">Cancelar</ThemedText>
-              </Pressable>
-            </View>
-          </View>
-        </Modal>
+        <SelectOptionModal
+          visible={courseModalVisible}
+          title="Selecciona un curso"
+          items={courses.map((item) => ({
+            id: item.id,
+            label: item.title,
+            subtitle: item.subtitle ?? "",
+            value: item,
+          }))}
+          onSelect={selectCourse}
+          onClose={() => setCourseModalVisible(false)}
+          emptyStateLabel="No hay cursos disponibles"
+        />
 
         <ThemedText type="label" style={{ marginTop: 12 }}>
           Alumno (Nombre o DNI)
         </ThemedText>
         <Pressable
-          disabled={!!selectedStudent}
+          disabled={!!selectedStudent || !course}
           onPress={() => {
             if (course) setStudentModalVisible(true);
           }}
@@ -193,47 +144,23 @@ export default function IncidenceForm() {
           </Text>
         </Pressable>
 
-        <Modal visible={studentModalVisible} animationType="slide" transparent>
-          <View style={styles.modalBackdrop}>
-            <View style={styles.modalContent}>
-              <TextInput
-                placeholder="Buscar por nombre o DNI"
-                placeholderTextColor={COLORS.onSurfaceVariant}
-                value={studentQuery}
-                onChangeText={setStudentQuery}
-                style={[styles.input, { marginBottom: 8 }]}
-              />
-              <FlatList
-                data={filteredStudents}
-                keyExtractor={(s) => s.id.toString()}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    onPress={() => {
-                      setStudent(item);
-                      setStudentModalVisible(false);
-                      setStudentQuery("");
-                    }}
-                    style={styles.modalItem}
-                  >
-                    <ThemedText type="body">{item.name}</ThemedText>
-                    <ThemedText type="label">{item.dni}</ThemedText>
-                  </TouchableOpacity>
-                )}
-                ListEmptyComponent={() => (
-                  <ThemedText type="body">
-                    No se encontraron alumnos.
-                  </ThemedText>
-                )}
-              />
-              <Pressable
-                onPress={() => setStudentModalVisible(false)}
-                style={styles.modalClose}
-              >
-                <ThemedText type="link">Cerrar</ThemedText>
-              </Pressable>
-            </View>
-          </View>
-        </Modal>
+        <SelectOptionModal
+          visible={studentModalVisible}
+          title="Selecciona un alumno"
+          items={filteredStudents.map((item) => ({
+            id: item.id,
+            label: item.name,
+            subtitle: item.dni,
+            value: item,
+          }))}
+          onSelect={selectStudent}
+          onClose={() => setStudentModalVisible(false)}
+          searchValue={studentQuery}
+          onSearchChange={setStudentQuery}
+          placeholder="Buscar por nombre o DNI"
+          emptyStateLabel="No se encontraron alumnos."
+        />
+
         <ThemedText type="label" style={{ marginTop: 12 }}>
           Título
         </ThemedText>
@@ -256,12 +183,6 @@ export default function IncidenceForm() {
           onChangeText={setDescription}
           multiline
         />
-        <Pressable
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
-          <Text style={styles.backButtonText}>{"<"}</Text>
-        </Pressable>
         <Pressable style={styles.saveButton} onPress={onSave}>
           <ThemedText type="button" color="onPrimary">
             Guardar incidencia
@@ -291,11 +212,6 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
 
-  backButtonText: {
-    fontSize: 28,
-    color: COLORS.primary,
-    fontFamily: "Manrope_700Bold",
-  },
   input: {
     backgroundColor: COLORS.surfaceContainerLowest,
     borderRadius: 12,
@@ -314,26 +230,5 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: "center",
     borderRadius: 12,
-  },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.35)",
-    justifyContent: "flex-end",
-  },
-  modalContent: {
-    backgroundColor: COLORS.surfaceContainerLowest,
-    padding: 16,
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
-    maxHeight: "60%",
-  },
-  modalItem: {
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.surfaceContainerHigh,
-  },
-  modalClose: {
-    marginTop: 8,
-    alignItems: "center",
   },
 });

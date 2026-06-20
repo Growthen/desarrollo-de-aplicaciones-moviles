@@ -1,14 +1,32 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, View, Text, TextInput, Pressable, ScrollView, SafeAreaView, Platform, StatusBar, Image, ActivityIndicator, Alert } from "react-native";
+import {
+  StyleSheet,
+  View,
+  Text,
+  TextInput,
+  Pressable,
+  ScrollView,
+  Platform,
+  StatusBar,
+  Image,
+  ActivityIndicator,
+  Alert,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { COLORS } from "@/shared";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import api from "@/features/auth/services/auth";
+import {
+  createClass,
+  getStudents,
+  updateClassStudents,
+} from "@/features/coordinador/services/coordinadorService";
 
 export default function AsignarAlumnosScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
-  const { courseName, teacherId, courseId, existingStudentIds } = route.params || {};
+  const { courseName, teacherId, courseId, existingStudentIds } =
+    route.params || {};
 
   const [searchQuery, setSearchQuery] = useState("");
   const [students, setStudents] = useState<any[]>([]);
@@ -19,10 +37,8 @@ export default function AsignarAlumnosScreen() {
   const fetchStudents = async () => {
     try {
       setLoading(true);
-      const res = await api.get("/api/students");
-      if (res.data?.data) {
-        setStudents(res.data.data);
-      }
+      const data = await getStudents();
+      setStudents(data);
     } catch (error) {
       console.error("Error fetching students:", error);
     } finally {
@@ -53,8 +69,10 @@ useEffect(() => {
   }, [existingStudentIds]);
 
   const toggleStudent = (id: number) => {
-    setSelectedIds(prev => 
-      prev.includes(id) ? prev.filter(studentId => studentId !== id) : [...prev, id]
+    setSelectedIds((prev) =>
+      prev.includes(id)
+        ? prev.filter((studentId) => studentId !== id)
+        : [...prev, id],
     );
   };
 
@@ -64,7 +82,7 @@ useEffect(() => {
     return (first + last).toUpperCase() || "A";
   };
 
-  const filteredStudents = students.filter(s => {
+  const filteredStudents = students.filter((s) => {
     const fullName = `${s.firstName || ""} ${s.lastName || ""}`.toLowerCase();
     return fullName.includes(searchQuery.toLowerCase());
   });
@@ -76,7 +94,10 @@ useEffect(() => {
     }
 
     if (selectedIds.length === 0) {
-      Alert.alert("Error", "Debe seleccionar al menos un alumno para matricular en este curso.");
+      Alert.alert(
+        "Error",
+        "Debe seleccionar al menos un alumno para matricular en este curso.",
+      );
       return;
     }
 
@@ -84,9 +105,7 @@ useEffect(() => {
       setSaving(true);
       if (courseId) {
         // Edit existing class student list
-        await api.put(`/api/classes/${courseId}/students`, {
-          studentIds: selectedIds,
-        });
+        await updateClassStudents(courseId, selectedIds);
 
         Alert.alert("Éxito", "Matrícula de alumnos actualizada correctamente", [
           { text: "OK", onPress: () => navigation.goBack() }
@@ -97,7 +116,7 @@ useEffect(() => {
           Alert.alert("Error", "Debe asignar un profesor.");
           return;
         }
-        await api.post("/api/classes", {
+        await createClass({
           name: courseName,
           teacherId: teacherId,
           studentIds: selectedIds,
@@ -117,7 +136,9 @@ Alert.alert(
 );
       }
     } catch (error: any) {
-      const errMsg = error.response?.data?.message || "Ocurrió un error al guardar las inscripciones";
+      const errMsg =
+        error.response?.data?.message ||
+        "Ocurrió un error al guardar las inscripciones";
       Alert.alert("Error", errMsg);
     } finally {
       setSaving(false);
@@ -125,34 +146,48 @@ Alert.alert(
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView edges={["left", "right", "bottom"]} style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.surface} />
-      
+
       {/* TopAppBar */}
       <View style={styles.header}>
         <Pressable style={styles.iconButton}>
-          <MaterialIcons name="menu" size={24} color={COLORS.onSurfaceVariant} />
+          <MaterialIcons
+            name="menu"
+            size={24}
+            color={COLORS.onSurfaceVariant}
+          />
         </Pressable>
         <Text style={styles.headerTitle}>TRILCE</Text>
         <View style={styles.profileIcon}>
           <MaterialIcons name="person" size={24} color={COLORS.primary} />
         </View>
       </View>
- 
+
       <View style={styles.container}>
         {/* Header Section */}
         <View style={styles.pageHeader}>
-          <Pressable style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Pressable
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
             <MaterialIcons name="arrow-back" size={18} color={COLORS.primary} />
             <Text style={styles.backButtonText}>Atrás</Text>
           </Pressable>
           <Text style={styles.title}>Asignar Alumnos al Curso</Text>
-          <Text style={styles.subtitle}>Selecciona los estudiantes para inscribirlos en este nuevo grupo.</Text>
+          <Text style={styles.subtitle}>
+            Selecciona los estudiantes para inscribirlos en este nuevo grupo.
+          </Text>
         </View>
- 
+
         {/* Search Bar */}
         <View style={styles.searchContainer}>
-          <MaterialIcons name="search" size={24} color={COLORS.onSurfaceVariant} style={styles.searchIcon} />
+          <MaterialIcons
+            name="search"
+            size={24}
+            color={COLORS.onSurfaceVariant}
+            style={styles.searchIcon}
+          />
           <TextInput
             style={styles.searchInput}
             placeholder="Buscar alumnos..."
@@ -161,49 +196,97 @@ Alert.alert(
             onChangeText={setSearchQuery}
           />
         </View>
- 
+
         {/* Students List */}
         {loading ? (
-          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <View
+            style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+          >
             <ActivityIndicator size="large" color={COLORS.primary} />
           </View>
         ) : filteredStudents.length === 0 ? (
-          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <MaterialIcons name="group-off" size={48} color={COLORS.onSurfaceVariant} />
-            <Text style={{ marginTop: 16, color: COLORS.onSurfaceVariant, fontSize: 16, fontWeight: '600' }}>
+          <View
+            style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+          >
+            <MaterialIcons
+              name="group-off"
+              size={48}
+              color={COLORS.onSurfaceVariant}
+            />
+            <Text
+              style={{
+                marginTop: 16,
+                color: COLORS.onSurfaceVariant,
+                fontSize: 16,
+                fontWeight: "600",
+              }}
+            >
               No se encontraron alumnos
             </Text>
           </View>
         ) : (
-          <ScrollView style={styles.listContainer} contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            style={styles.listContainer}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+          >
             {filteredStudents.map((student, index) => {
               const isChecked = selectedIds.includes(student.id);
               const fullName = `${student.firstName} ${student.lastName}`;
               return (
-                <Pressable 
-                  key={student.id} 
+                <Pressable
+                  key={student.id}
                   style={[
                     styles.studentCard,
-                    index % 2 === 0 ? { marginLeft: 0, marginRight: 16 } : { marginLeft: 16, marginRight: 0 }
+                    index % 2 === 0
+                      ? { marginLeft: 0, marginRight: 16 }
+                      : { marginLeft: 16, marginRight: 0 },
                   ]}
                   onPress={() => toggleStudent(student.id)}
                 >
                   <View style={styles.checkboxContainer}>
-                    <View style={[styles.checkbox, isChecked && styles.checkboxChecked]}>
-                      {isChecked && <MaterialIcons name="check" size={16} color={COLORS.onPrimary} />}
+                    <View
+                      style={[
+                        styles.checkbox,
+                        isChecked && styles.checkboxChecked,
+                      ]}
+                    >
+                      {isChecked && (
+                        <MaterialIcons
+                          name="check"
+                          size={16}
+                          color={COLORS.onPrimary}
+                        />
+                      )}
                     </View>
                   </View>
- 
+
                   <View style={[styles.avatarContainer, styles.avatarInitials]}>
-                    <Text style={styles.initialsText}>{getInitials(student.firstName, student.lastName)}</Text>
+                    <Text style={styles.initialsText}>
+                      {getInitials(student.firstName, student.lastName)}
+                    </Text>
                   </View>
- 
+
                   <View style={styles.studentInfo}>
-                    <Text style={[styles.studentName, isChecked && { color: COLORS.primary }]}>
+                    <Text
+                      style={[
+                        styles.studentName,
+                        isChecked && { color: COLORS.primary },
+                      ]}
+                    >
                       {fullName}
                     </Text>
-                    <Text style={styles.studentGrade}>Código: {student.studentCode || "S/C"}</Text>
-                    <Text style={[styles.studentGrade, { fontSize: 12, color: COLORS.tertiary, marginTop: 1 }]}>DNI: {student.dni}</Text>
+                    <Text style={styles.studentGrade}>
+                      Código: {student.studentCode || "S/C"}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.studentGrade,
+                        { fontSize: 12, color: COLORS.tertiary, marginTop: 1 },
+                      ]}
+                    >
+                      DNI: {student.dni}
+                    </Text>
                   </View>
                 </Pressable>
               );
@@ -211,10 +294,10 @@ Alert.alert(
           </ScrollView>
         )}
       </View>
- 
+
       {/* Bottom Action Area */}
       <View style={styles.bottomActionArea}>
-        <Pressable 
+        <Pressable
           style={styles.saveButton}
           onPress={handleSave}
           disabled={saving}
@@ -223,8 +306,14 @@ Alert.alert(
             <ActivityIndicator size="small" color={COLORS.onPrimary} />
           ) : (
             <>
-              <Text style={styles.saveButtonText}>Guardar e Inscribir Alumnos</Text>
-              <MaterialIcons name="check-circle" size={20} color={COLORS.onPrimary} />
+              <Text style={styles.saveButtonText}>
+                Guardar e Inscribir Alumnos
+              </Text>
+              <MaterialIcons
+                name="check-circle"
+                size={20}
+                color={COLORS.onPrimary}
+              />
             </>
           )}
         </Pressable>
@@ -256,7 +345,7 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
     flex: 1,
     textAlign: "center",
-    fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
+    fontFamily: Platform.OS === "ios" ? "System" : "Roboto",
   },
   profileIcon: {
     width: 40,

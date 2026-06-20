@@ -1,44 +1,28 @@
 import { FlatList, Pressable, StyleSheet, View } from "react-native";
-import { useEffect, useState } from "react";
 
 import { useNavigation, useRoute } from "@react-navigation/native";
 
+import BackButton from "@/shared/components/BackButton";
 import ThemedText from "@/shared/components/ThemedText";
 import { COLORS } from "@/shared/constants/colors";
 
 import { Course, Student } from "../types/types";
-
-import { getStudentsByClassId } from "../services/courseService";
+import { useClassStudents } from "../hooks/useClassStudents";
 
 export default function CourseDetailScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
 
   const { course }: { course: Course } = route.params;
-
-  const [students, setStudents] = useState<Student[]>([]);
-
-  useEffect(() => {
-    loadStudents();
-  }, []);
-
-  async function loadStudents() {
-    try {
-      const data = await getStudentsByClassId(course.id);
-      setStudents(data);
-    } catch (error) {
-      console.error("Error cargando alumnos:", error);
-    }
-  }
+  const { students } = useClassStudents(course?.id);
 
   return (
     <View style={styles.container}>
+      <BackButton />
       <ThemedText type="brandTitle">{course.title}</ThemedText>
-
       <ThemedText type="brandSubtitle" style={{ marginBottom: 20 }}>
         Lista de alumnos
       </ThemedText>
-
       <FlatList
         data={students}
         keyExtractor={(item: Student) => item.id.toString()}
@@ -76,6 +60,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     backgroundColor: COLORS.background,
+    paddingTop: 60,
   },
 
   studentCard: {

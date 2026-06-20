@@ -102,7 +102,7 @@ useEffect(() => {
   }, [navigation]);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView edges={["left", "right", "bottom"]} style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.surface} />
       
       {/* Top Bar */}
@@ -120,43 +120,88 @@ useEffect(() => {
         </Pressable>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Header Section */}
         <View style={styles.sectionHeader}>
           <Text style={styles.title}>Dashboard del Coordinador</Text>
-          <Text style={styles.subtitle}>Resumen General: Métricas clave de tu gestión académica</Text>
+          <Text style={styles.subtitle}>
+            Resumen General: Métricas clave de tu gestión académica
+          </Text>
         </View>
 
         {/* Metrics Grid */}
         <View style={styles.metricsContainer}>
           <View style={[styles.metricCard, styles.metricCardPrimary]}>
-            <View style={[styles.cardIndicator, { backgroundColor: COLORS.primary }]} />
+            <View
+              style={[
+                styles.cardIndicator,
+                { backgroundColor: COLORS.primary },
+              ]}
+            />
             <View style={styles.metricCardContent}>
               <View>
                 <Text style={styles.metricLabel}>ALUMNOS MATRICULADOS</Text>
                 {loading ? (
-                  <ActivityIndicator size="small" color={COLORS.primary} style={{ marginTop: 8, alignSelf: 'flex-start' }} />
+                  <ActivityIndicator
+                    size="small"
+                    color={COLORS.primary}
+                    style={{ marginTop: 8, alignSelf: "flex-start" }}
+                  />
                 ) : (
-                  <Text style={styles.metricValueLarge}>{metrics.students}</Text>
+                  <Text style={styles.metricValueLarge}>
+                    {metrics.students}
+                  </Text>
                 )}
               </View>
-              <View style={[styles.metricIconContainer, { backgroundColor: COLORS.primaryContainer }]}>
-                <MaterialIcons name="groups" size={28} color={COLORS.onPrimaryContainer} />
+              <View
+                style={[
+                  styles.metricIconContainer,
+                  { backgroundColor: COLORS.primaryContainer },
+                ]}
+              >
+                <MaterialIcons
+                  name="groups"
+                  size={28}
+                  color={COLORS.onPrimaryContainer}
+                />
               </View>
             </View>
           </View>
 
           <View style={styles.metricCard}>
-            <View style={[styles.cardIndicator, { backgroundColor: COLORS.secondary }]} />
+            <View
+              style={[
+                styles.cardIndicator,
+                { backgroundColor: COLORS.secondary },
+              ]}
+            />
             <View style={styles.metricCardContentSmall}>
-              <View style={[styles.metricIconContainerSmall, { backgroundColor: COLORS.secondaryContainer }]}>
-                <MaterialIcons name="school" size={20} color={COLORS.onSecondaryContainer} />
+              <View
+                style={[
+                  styles.metricIconContainerSmall,
+                  { backgroundColor: COLORS.secondaryContainer },
+                ]}
+              >
+                <MaterialIcons
+                  name="school"
+                  size={20}
+                  color={COLORS.onSecondaryContainer}
+                />
               </View>
               <View style={{ flex: 1, marginLeft: 16 }}>
                 {loading ? (
-                  <ActivityIndicator size="small" color={COLORS.secondary} style={{ alignSelf: 'flex-start' }} />
+                  <ActivityIndicator
+                    size="small"
+                    color={COLORS.secondary}
+                    style={{ alignSelf: "flex-start" }}
+                  />
                 ) : (
-                  <Text style={styles.metricValueSmall}>{metrics.teachers}</Text>
+                  <Text style={styles.metricValueSmall}>
+                    {metrics.teachers}
+                  </Text>
                 )}
                 <Text style={styles.metricLabel}>PROFESORES ACTIVOS</Text>
               </View>
@@ -164,14 +209,32 @@ useEffect(() => {
           </View>
 
           <View style={styles.metricCard}>
-            <View style={[styles.cardIndicator, { backgroundColor: COLORS.tertiaryContainer }]} />
+            <View
+              style={[
+                styles.cardIndicator,
+                { backgroundColor: COLORS.tertiaryContainer },
+              ]}
+            />
             <View style={styles.metricCardContentSmall}>
-              <View style={[styles.metricIconContainerSmall, { backgroundColor: COLORS.tertiaryContainer }]}>
-                <MaterialIcons name="family-restroom" size={20} color={COLORS.onTertiaryContainer} />
+              <View
+                style={[
+                  styles.metricIconContainerSmall,
+                  { backgroundColor: COLORS.tertiaryContainer },
+                ]}
+              >
+                <MaterialIcons
+                  name="family-restroom"
+                  size={20}
+                  color={COLORS.onTertiaryContainer}
+                />
               </View>
               <View style={{ flex: 1, marginLeft: 16 }}>
                 {loading ? (
-                  <ActivityIndicator size="small" color={COLORS.onTertiaryContainer} style={{ alignSelf: 'flex-start' }} />
+                  <ActivityIndicator
+                    size="small"
+                    color={COLORS.onTertiaryContainer}
+                    style={{ alignSelf: "flex-start" }}
+                  />
                 ) : (
                   <Text style={styles.metricValueSmall}>{metrics.parents}</Text>
                 )}
@@ -185,20 +248,35 @@ useEffect(() => {
         <View style={styles.quickActionsSection}>
           <Text style={styles.sectionTitle}>Accesos Rápidos</Text>
           <View style={styles.actionsRow}>
-            <Pressable 
+            <Pressable
               style={[styles.actionButton, { backgroundColor: COLORS.primary }]}
-              onPress={() => navigation.navigate('CoordinadorCrearCurso')}
+              onPress={() => navigation.navigate("CoordinadorCrearCurso")}
             >
               <MaterialIcons name="add" size={20} color={COLORS.onPrimary} />
-              <Text style={[styles.actionButtonText, { color: COLORS.onPrimary }]}>Crear Curso</Text>
+              <Text
+                style={[styles.actionButtonText, { color: COLORS.onPrimary }]}
+              >
+                Crear Curso
+              </Text>
             </Pressable>
-            
-            <Pressable 
-              style={[styles.actionButton, { backgroundColor: COLORS.secondary }]}
-              onPress={() => navigation.navigate('CoordinadorRegistrarUsuario')}
+
+            <Pressable
+              style={[
+                styles.actionButton,
+                { backgroundColor: COLORS.secondary },
+              ]}
+              onPress={() => navigation.navigate("CoordinadorRegistrarUsuario")}
             >
-              <MaterialIcons name="person-add" size={20} color={COLORS.onSecondary} />
-              <Text style={[styles.actionButtonText, { color: COLORS.onSecondary }]}>Crear Usuario</Text>
+              <MaterialIcons
+                name="person-add"
+                size={20}
+                color={COLORS.onSecondary}
+              />
+              <Text
+                style={[styles.actionButtonText, { color: COLORS.onSecondary }]}
+              >
+                Crear Usuario
+              </Text>
             </Pressable>
           </View>
         </View>

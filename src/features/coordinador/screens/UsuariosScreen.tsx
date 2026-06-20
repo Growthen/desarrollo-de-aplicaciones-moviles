@@ -1,9 +1,20 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, View, Text, TextInput, Pressable, ScrollView, SafeAreaView, Platform, StatusBar, ActivityIndicator } from "react-native";
+import {
+  StyleSheet,
+  View,
+  Text,
+  TextInput,
+  Pressable,
+  ScrollView,
+  Platform,
+  StatusBar,
+  ActivityIndicator,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { COLORS } from "@/shared";
 import { useNavigation } from "@react-navigation/native";
-import api from "@/features/auth/services/auth";
+import { getUsers } from "@/features/coordinador/services/coordinadorService";
 
 export default function UsuariosScreen() {
   const navigation = useNavigation<any>();
@@ -14,10 +25,8 @@ export default function UsuariosScreen() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const res = await api.get("/api/users");
-      if (res.data?.data) {
-        setUsers(res.data.data);
-      }
+      const data = await getUsers();
+      setUsers(data);
     } catch (error) {
       console.error("Error fetching users directory:", error);
     } finally {
@@ -41,26 +50,40 @@ export default function UsuariosScreen() {
 
   const getInitials = (name: string) => {
     if (!name) return "U";
-    return name.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase();
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .substring(0, 2)
+      .toUpperCase();
   };
 
-  const filteredUsers = users.filter(u => 
-    (u.name && u.name.toLowerCase().includes(searchQuery.toLowerCase())) || 
-    (u.role && u.role.toLowerCase().includes(searchQuery.toLowerCase()))
+  const filteredUsers = users.filter(
+    (u) =>
+      (u.name && u.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (u.role && u.role.toLowerCase().includes(searchQuery.toLowerCase())),
   );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView edges={["left", "right", "bottom"]} style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.surface} />
-      
+
       {/* TopAppBar */}
       <View style={styles.header}>
         <Pressable style={styles.iconButton}>
-          <MaterialIcons name="menu" size={24} color={COLORS.onSurfaceVariant} />
+          <MaterialIcons
+            name="menu"
+            size={24}
+            color={COLORS.onSurfaceVariant}
+          />
         </Pressable>
         <Text style={styles.headerTitle}>TRILCE</Text>
         <View style={styles.profileIcon}>
-          <MaterialIcons name="person" size={24} color={COLORS.onSurfaceVariant} />
+          <MaterialIcons
+            name="person"
+            size={24}
+            color={COLORS.onSurfaceVariant}
+          />
         </View>
       </View>
 
@@ -68,12 +91,19 @@ export default function UsuariosScreen() {
         {/* Header Section */}
         <View style={styles.pageHeader}>
           <Text style={styles.title}>Directorio de Usuarios Creados</Text>
-          <Text style={styles.subtitle}>Lista de padres y profesores creados por el coordinador actual.</Text>
+          <Text style={styles.subtitle}>
+            Lista de padres y profesores creados por el coordinador actual.
+          </Text>
         </View>
 
         {/* Search Bar */}
         <View style={styles.searchContainer}>
-          <MaterialIcons name="search" size={24} color={COLORS.onSurfaceVariant} style={styles.searchIcon} />
+          <MaterialIcons
+            name="search"
+            size={24}
+            color={COLORS.onSurfaceVariant}
+            style={styles.searchIcon}
+          />
           <TextInput
             style={styles.searchInput}
             placeholder="Buscar por nombre o rol..."
@@ -85,13 +115,34 @@ export default function UsuariosScreen() {
 
         {/* Directory Grid */}
         {loading ? (
-          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <View
+            style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+          >
             <ActivityIndicator size="large" color={COLORS.primary} />
           </View>
         ) : filteredUsers.length === 0 ? (
-          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 }}>
-            <MaterialIcons name="person-off" size={48} color={COLORS.onSurfaceVariant} />
-            <Text style={{ marginTop: 16, fontSize: 16, color: COLORS.onSurfaceVariant, fontWeight: '600', textAlign: 'center' }}>
+          <View
+            style={{
+              flex: 1,
+              justifyContent: "center",
+              alignItems: "center",
+              padding: 24,
+            }}
+          >
+            <MaterialIcons
+              name="person-off"
+              size={48}
+              color={COLORS.onSurfaceVariant}
+            />
+            <Text
+              style={{
+                marginTop: 16,
+                fontSize: 16,
+                color: COLORS.onSurfaceVariant,
+                fontWeight: "600",
+                textAlign: "center",
+              }}
+            >
               No se encontraron usuarios
             </Text>
           </View>
@@ -114,29 +165,53 @@ export default function UsuariosScreen() {
                   <View style={styles.cardContent}>
                     <View style={styles.userInfo}>
                       <View style={styles.avatar}>
-                        <Text style={styles.avatarText}>{getInitials(user.name)}</Text>
+                        <Text style={styles.avatarText}>
+                          {getInitials(user.name)}
+                        </Text>
                       </View>
                       <View style={styles.userDetails}>
                         <Text style={styles.userName}>{user.name}</Text>
                         <View style={styles.dateRow}>
-                          <MaterialIcons name="badge" size={14} color={COLORS.onSurfaceVariant} />
+                          <MaterialIcons
+                            name="badge"
+                            size={14}
+                            color={COLORS.onSurfaceVariant}
+                          />
                           <Text style={styles.dateText}>DNI: {user.dni}</Text>
                         </View>
                         <View style={[styles.dateRow, { marginTop: 2 }]}>
-                          <MaterialIcons name="email" size={14} color={COLORS.onSurfaceVariant} />
-                          <Text style={styles.dateText} numberOfLines={1}>{user.email}</Text>
+                          <MaterialIcons
+                            name="email"
+                            size={14}
+                            color={COLORS.onSurfaceVariant}
+                          />
+                          <Text style={styles.dateText} numberOfLines={1}>
+                            {user.email}
+                          </Text>
                         </View>
                       </View>
                     </View>
-                    
-                    <View style={[
-                      styles.roleBadge, 
-                      { backgroundColor: isTeacher ? COLORS.secondaryContainer : COLORS.primaryFixed }
-                    ]}>
-                      <Text style={[
-                        styles.roleBadgeText, 
-                        { color: isTeacher ? COLORS.onSecondaryContainer : COLORS.onPrimaryFixed }
-                      ]}>
+
+                    <View
+                      style={[
+                        styles.roleBadge,
+                        {
+                          backgroundColor: isTeacher
+                            ? COLORS.secondaryContainer
+                            : COLORS.primaryFixed,
+                        },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.roleBadgeText,
+                          {
+                            color: isTeacher
+                              ? COLORS.onSecondaryContainer
+                              : COLORS.onPrimaryFixed,
+                          },
+                        ]}
+                      >
                         {user.role}
                       </Text>
                     </View>
@@ -175,7 +250,7 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: "center",
     letterSpacing: -0.5,
-    fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
+    fontFamily: Platform.OS === "ios" ? "System" : "Roboto",
   },
   profileIcon: {
     width: 32,

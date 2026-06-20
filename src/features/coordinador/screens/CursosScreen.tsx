@@ -1,9 +1,21 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, View, Text, ScrollView, Pressable, Image, SafeAreaView, Platform, StatusBar, Switch, ActivityIndicator } from "react-native";
+import {
+  StyleSheet,
+  View,
+  Text,
+  ScrollView,
+  Pressable,
+  Image,
+  Platform,
+  StatusBar,
+  Switch,
+  ActivityIndicator,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { COLORS } from "@/shared";
 import { useNavigation } from "@react-navigation/native";
-import api from "@/features/auth/services/auth";
+import { getCourses } from "@/features/coordinador/services/coordinadorService";
 
 export default function CursosScreen() {
   const navigation = useNavigation<any>();
@@ -14,16 +26,14 @@ export default function CursosScreen() {
   const fetchCourses = async () => {
     try {
       setLoading(true);
-      const res = await api.get("/api/classes");
-      if (res.data?.data) {
-        setCourses(res.data.data);
-        // Initialize all fetched courses as active in the UI
-        const states: Record<number, boolean> = {};
-        res.data.data.forEach((c: any) => {
-          states[c.id] = true;
-        });
-        setActiveStates(states);
-      }
+      const data = await getCourses();
+      setCourses(data);
+      // Initialize all fetched courses as active in the UI
+      const states: Record<number, boolean> = {};
+      data.forEach((c: any) => {
+        states[c.id] = true;
+      });
+      setActiveStates(states);
     } catch (error) {
       console.error("Error fetching courses list:", error);
     } finally {
@@ -41,16 +51,16 @@ export default function CursosScreen() {
   }, [navigation]);
 
   const toggleCourse = (id: number) => {
-    setActiveStates(prev => ({
+    setActiveStates((prev) => ({
       ...prev,
-      [id]: !prev[id]
+      [id]: !prev[id],
     }));
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView edges={["left", "right", "bottom"]} style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.surface} />
-      
+
       {/* Header Mobile Only */}
       <View style={styles.header}>
         <Pressable style={styles.iconButton}>
@@ -61,33 +71,52 @@ export default function CursosScreen() {
           <MaterialIcons name="person" size={24} color={COLORS.primary} />
         </View>
       </View>
- 
+
       {loading ? (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
           <ActivityIndicator size="large" color={COLORS.primary} />
         </View>
       ) : (
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
           {/* Page Header Section */}
           <View style={styles.pageHeader}>
             <Text style={styles.title}>Cursos</Text>
-            <Text style={styles.subtitle}>Gestione su oferta académica y el profesorado asignado.</Text>
-            
-            <Pressable 
+            <Text style={styles.subtitle}>
+              Gestione su oferta académica y el profesorado asignado.
+            </Text>
+
+            <Pressable
               style={styles.primaryButton}
-              onPress={() => navigation.navigate('CoordinadorCrearCurso')}
+              onPress={() => navigation.navigate("CoordinadorCrearCurso")}
             >
               <MaterialIcons name="add" size={20} color={COLORS.onPrimary} />
               <Text style={styles.primaryButtonText}>Crear Nuevo Curso</Text>
             </Pressable>
           </View>
-  
+
           {/* Course Cards Grid */}
           <View style={styles.cardsContainer}>
             {courses.length === 0 ? (
-              <View style={{ padding: 32, alignItems: 'center' }}>
-                <MaterialIcons name="menu-book" size={48} color={COLORS.onSurfaceVariant} />
-                <Text style={{ marginTop: 16, color: COLORS.onSurfaceVariant, fontSize: 16, fontWeight: '600', textAlign: 'center' }}>
+              <View style={{ padding: 32, alignItems: "center" }}>
+                <MaterialIcons
+                  name="menu-book"
+                  size={48}
+                  color={COLORS.onSurfaceVariant}
+                />
+                <Text
+                  style={{
+                    marginTop: 16,
+                    color: COLORS.onSurfaceVariant,
+                    fontSize: 16,
+                    fontWeight: "600",
+                    textAlign: "center",
+                  }}
+                >
                   No hay cursos registrados todavía
                 </Text>
               </View>
@@ -95,55 +124,126 @@ export default function CursosScreen() {
               courses.map((course) => {
                 const isActive = !!activeStates[course.id];
                 return (
-                  <View key={course.id} style={[styles.card, !isActive && styles.cardInactive]}>
-                    <View style={[styles.cardIndicator, { backgroundColor: isActive ? COLORS.secondary : COLORS.surfaceVariant }]} />
-                    
+                  <View
+                    key={course.id}
+                    style={[styles.card, !isActive && styles.cardInactive]}
+                  >
+                    <View
+                      style={[
+                        styles.cardIndicator,
+                        {
+                          backgroundColor: isActive
+                            ? COLORS.secondary
+                            : COLORS.surfaceVariant,
+                        },
+                      ]}
+                    />
+
                     <View style={styles.cardHeader}>
-                      <View style={[styles.statusBadge, { backgroundColor: isActive ? COLORS.primaryFixed : COLORS.surfaceContainerHigh }]}>
-                        {isActive && <View style={[styles.statusDot, { backgroundColor: COLORS.primary }]} />}
-                        <Text style={[styles.statusText, { color: isActive ? COLORS.onPrimaryFixed : COLORS.onSurfaceVariant }]}>
+                      <View
+                        style={[
+                          styles.statusBadge,
+                          {
+                            backgroundColor: isActive
+                              ? COLORS.primaryFixed
+                              : COLORS.surfaceContainerHigh,
+                          },
+                        ]}
+                      >
+                        {isActive && (
+                          <View
+                            style={[
+                              styles.statusDot,
+                              { backgroundColor: COLORS.primary },
+                            ]}
+                          />
+                        )}
+                        <Text
+                          style={[
+                            styles.statusText,
+                            {
+                              color: isActive
+                                ? COLORS.onPrimaryFixed
+                                : COLORS.onSurfaceVariant,
+                            },
+                          ]}
+                        >
                           {isActive ? "CURSO ACTIVO" : "INACTIVO"}
                         </Text>
                       </View>
-                      <Switch 
-                        value={isActive} 
-                        onValueChange={() => toggleCourse(course.id)} 
-                        trackColor={{ false: COLORS.surfaceVariant, true: COLORS.secondary }}
+                      <Switch
+                        value={isActive}
+                        onValueChange={() => toggleCourse(course.id)}
+                        trackColor={{
+                          false: COLORS.surfaceVariant,
+                          true: COLORS.secondary,
+                        }}
                         thumbColor="#ffffff"
                       />
                     </View>
-  
+
                     <Text style={styles.courseTitle}>{course.name}</Text>
-  
+
                     <View style={styles.cardFooter}>
                       <Text style={styles.footerLabel}>Profesor Asignado</Text>
                       <View style={styles.teacherRow}>
-                        <View style={[styles.teacherAvatar, { backgroundColor: COLORS.surfaceContainer, justifyContent: 'center', alignItems: 'center' }]}>
-                          <MaterialIcons name="person" size={20} color={COLORS.primary} />
+                        <View
+                          style={[
+                            styles.teacherAvatar,
+                            {
+                              backgroundColor: COLORS.surfaceContainer,
+                              justifyContent: "center",
+                              alignItems: "center",
+                            },
+                          ]}
+                        >
+                          <MaterialIcons
+                            name="person"
+                            size={20}
+                            color={COLORS.primary}
+                          />
                         </View>
                         <View>
-                          <Text style={styles.teacherName}>{course.teacherName || "Sin Asignar"}</Text>
-                          <Text style={styles.teacherDept}>Profesor del Curso</Text>
+                          <Text style={styles.teacherName}>
+                            {course.teacherName || "Sin Asignar"}
+                          </Text>
+                          <Text style={styles.teacherDept}>
+                            Profesor del Curso
+                          </Text>
                         </View>
                       </View>
-                      
-                      <Text style={[styles.footerLabel, { marginTop: 12, marginBottom: 8 }]}>
-                        Alumnos Inscritos: {course.students ? course.students.length : 0}
+
+                      <Text
+                        style={[
+                          styles.footerLabel,
+                          { marginTop: 12, marginBottom: 8 },
+                        ]}
+                      >
+                        Alumnos Inscritos:{" "}
+                        {course.students ? course.students.length : 0}
                       </Text>
-                      <Pressable 
+                      <Pressable
                         style={styles.enrollButton}
                         onPress={() => {
-                          const studentIds = course.students ? course.students.map((s: any) => s.id) : [];
-                          navigation.navigate('CoordinadorAsignarAlumnos', {
+                          const studentIds = course.students
+                            ? course.students.map((s: any) => s.id)
+                            : [];
+                          navigation.navigate("CoordinadorAsignarAlumnos", {
                             courseName: course.name,
                             teacherId: course.teacherId,
                             courseId: course.id,
-                            existingStudentIds: studentIds
+                            existingStudentIds: studentIds,
                           });
                         }}
                       >
-                        <MaterialIcons name="person-add" size={16} color={COLORS.secondary} />
-                        <Text style={styles.enrollButtonText}>Gestionar Alumnos</Text>
+                        <MaterialIcons
+                          name="person-add"
+                          size={16}
+                          color={COLORS.secondary}
+                        />
+                        <Text style={styles.enrollButtonText}>
+                          Gestionar Alumnos
+                        </Text>
                       </Pressable>
                     </View>
                   </View>
@@ -184,7 +284,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     color: COLORS.primary,
-    fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
+    fontFamily: Platform.OS === "ios" ? "System" : "Roboto",
   },
   profileIcon: {
     width: 40,
