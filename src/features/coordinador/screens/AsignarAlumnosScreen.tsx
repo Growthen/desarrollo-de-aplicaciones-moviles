@@ -46,9 +46,19 @@ export default function AsignarAlumnosScreen() {
     }
   };
 
-  useEffect(() => {
+useEffect(() => {
+    // 1. Carga inicial
     fetchStudents();
-  }, []);
+
+    // 2. El vigilante que obliga a recargar la lista de alumnos cada vez que entras
+    const unsubscribe = navigation.addListener('focus', () => {
+      console.log("Recargando lista de alumnos...");
+      fetchStudents();
+    });
+
+    // 3. Limpieza
+    return unsubscribe;
+  }, [navigation]);
 
   useEffect(() => {
     if (existingStudentIds) {
@@ -98,10 +108,7 @@ export default function AsignarAlumnosScreen() {
         await updateClassStudents(courseId, selectedIds);
 
         Alert.alert("Éxito", "Matrícula de alumnos actualizada correctamente", [
-          {
-            text: "OK",
-            onPress: () => navigation.navigate("CoordinadorDashboard"),
-          },
+          { text: "OK", onPress: () => navigation.goBack() }
         ]);
       } else {
         // Create new class
@@ -115,16 +122,18 @@ export default function AsignarAlumnosScreen() {
           studentIds: selectedIds,
         });
 
-        Alert.alert(
-          "Éxito",
-          "Curso creado e inscripciones registradas correctamente",
-          [
-            {
-              text: "OK",
-              onPress: () => navigation.navigate("CoordinadorDashboard"),
-            },
-          ],
-        );
+        // ✅ CÓDIGO CORREGIDO
+Alert.alert(
+  "Éxito",
+  "Curso creado e inscripciones registradas correctamente",
+  [
+    { 
+      text: "OK", 
+      // Lo mandamos de regreso a la pantalla principal
+      onPress: () => navigation.navigate("CoordinadorDashboard") 
+    }
+  ]
+);
       }
     } catch (error: any) {
       const errMsg =

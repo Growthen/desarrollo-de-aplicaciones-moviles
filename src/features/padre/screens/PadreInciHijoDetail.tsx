@@ -2,22 +2,22 @@ import { Pressable, Text, View, StyleSheet, ScrollView, StatusBar } from "react-
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
-import type { PadreHijosStackParams } from "../navigation/PadreHijosStack";
-
 
 import { COLORS, ThemedText } from "@/shared";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { InciDetailParams } from "../navigation/types/PadreNavigation.types";
 
 //tipos
-type navi= NativeStackNavigationProp<PadreHijosStackParams, "inciDetail">;
-type route= RouteProp<PadreHijosStackParams, "inciDetail">;
+type route= RouteProp<{ inciDetail: InciDetailParams }, "inciDetail">;
+//type route= RouteProp<PadreHijosStackParams, "inciDetail">;
+
+
 
 export default function PadreInciHijoDetail(){
-    const navigator = useNavigation<navi>();
+    const navigator = useNavigation<NativeStackNavigationProp<any>>();
     const route = useRoute<route>();
-    const {incidencia} = route.params;
-
+    
     if (!route.params?.incidencia) {
         return (
             <View style={styles.notfoundContainer}>
@@ -28,6 +28,8 @@ export default function PadreInciHijoDetail(){
             </View>
         );
     }
+
+    const {incidencia} = route.params;
 
     return(
         <SafeAreaView style={styles.root} edges={["top", "bottom"]}>
@@ -107,7 +109,10 @@ export default function PadreInciHijoDetail(){
 
             
         </SafeAreaView>
+        
     );
+    
+
 }
 
 const styles = StyleSheet.create({

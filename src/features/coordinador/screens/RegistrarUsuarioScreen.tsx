@@ -1,26 +1,9 @@
-import React, { useState, useEffect } from "react";
-import {
-  StyleSheet,
-  View,
-  Text,
-  TextInput,
-  Pressable,
-  ScrollView,
-  Platform,
-  StatusBar,
-  KeyboardAvoidingView,
-  ActivityIndicator,
-  Alert,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import React, { useState, useCallback } from "react";
+import { StyleSheet, View, Text, TextInput, Pressable, ScrollView, SafeAreaView, Platform, StatusBar, KeyboardAvoidingView, ActivityIndicator, Alert } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { COLORS } from "@/shared";
-import { useNavigation } from "@react-navigation/native";
-import {
-  createStudent,
-  createUser,
-  getParents,
-} from "@/features/coordinador/services/coordinadorService";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import api from "@/features/auth/services/auth";
 
 export default function RegistrarUsuarioScreen() {
   const navigation = useNavigation<any>();
@@ -36,20 +19,23 @@ export default function RegistrarUsuarioScreen() {
   const [showParentDropdown, setShowParentDropdown] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    const fetchParents = async () => {
-      try {
-        const data = await getParents();
-        setParents(data);
-      } catch (error) {
-        console.error("Error fetching parents:", error);
-      }
-    };
+  // Implementamos useFocusEffect para limpiar el formulario al entrar
+  useFocusEffect(
+    useCallback(() => {
+      const fetchParents = async () => {
+        try {
+          const res = await api.get("/api/users/parents");
+          if (res.data?.data) {
+            setParents(res.data.data);
+          }
+        } catch (error) {
+          console.error("Error fetching parents:", error);
+        }
+      };
 
-    const unsubscribe = navigation.addListener("focus", () => {
-      // Fetch parents to get the latest list in real-time
       fetchParents();
-      // Reset form states so that it starts clean on every new entry
+      
+      // Limpiamos los estados
       setFullName("");
       setDni("");
       setEmail("");
@@ -57,12 +43,10 @@ export default function RegistrarUsuarioScreen() {
       setRole("padre");
       setSelectedParentId(null);
       setShowParentDropdown(false);
-    });
 
-    fetchParents();
-
-    return unsubscribe;
-  }, [navigation]);
+      return () => {};
+    }, [])
+  );
 
   const handleSave = async () => {
     if (!fullName.trim() || !dni.trim()) {
@@ -86,7 +70,6 @@ export default function RegistrarUsuarioScreen() {
           return;
         }
 
-        // Split name into first and last name
         const parts = fullName.trim().split(" ");
         const firstName = parts[0] || "";
         const lastName = parts.slice(1).join(" ") || "Pérez";
@@ -167,6 +150,41 @@ export default function RegistrarUsuarioScreen() {
 
           {/* Form Area */}
           <View style={styles.formContainer}>
+            
+            {/* 1. Moviendo el selector de Rol ARRIBA */}
+            <View style={styles.blockContainer}>
+              <Text style={styles.blockTitle}>Asignación de Rol</Text>
+              
+              <View style={styles.roleGrid}>
+                {/* Padre Option */}
+                <Pressable 
+                  style={[styles.roleCard, role === "padre" && styles.roleCardActive]}
+                  onPress={() => setRole("padre")}
+                >
+                  <MaterialIcons name="family-restroom" size={28} color={role === "padre" ? COLORS.primary : COLORS.onSurfaceVariant} />
+                  <Text style={[styles.roleText, role === "padre" && styles.roleTextActive]}>PADRE</Text>
+                </Pressable>
+
+                {/* Profesor Option */}
+                <Pressable 
+                  style={[styles.roleCard, role === "profesor" && styles.roleCardActive]}
+                  onPress={() => setRole("profesor")}
+                >
+                  <MaterialIcons name="school" size={28} color={role === "profesor" ? COLORS.primary : COLORS.onSurfaceVariant} />
+                  <Text style={[styles.roleText, role === "profesor" && styles.roleTextActive]}>PROFESOR</Text>
+                </Pressable>
+
+                {/* Alumno Option */}
+                <Pressable 
+                  style={[styles.roleCard, role === "alumno" && styles.roleCardActive]}
+                  onPress={() => setRole("alumno")}
+                >
+                  <MaterialIcons name="face" size={28} color={role === "alumno" ? COLORS.primary : COLORS.onSurfaceVariant} />
+                  <Text style={[styles.roleText, role === "alumno" && styles.roleTextActive]}>ALUMNO</Text>
+                </Pressable>
+              </View>
+            </View>
+
             {/* Personal Info Block */}
             <View style={styles.blockContainer}>
               <Text style={styles.blockTitle}>Información Personal</Text>
@@ -206,14 +224,14 @@ export default function RegistrarUsuarioScreen() {
                     style={styles.inputContainerDropdown}
                     onPress={() => setShowParentDropdown(!showParentDropdown)}
                   >
-                    <Text
-                      style={[
-                        styles.inputText,
-                        !selectedParentId && styles.placeholderText,
-                      ]}
+                    {/* Agregado numberOfLines={1} para que no se desborde */}
+                    <Text 
+                      style={[styles.inputText, !selectedParentId && styles.placeholderText]} 
+                      numberOfLines={1} 
+                      ellipsizeMode="tail"
                     >
-                      {selectedParentId
-                        ? parents.find((p) => p.id === selectedParentId)?.name
+                      {selectedParentId 
+                        ? parents.find(p => p.id === selectedParentId)?.name 
                         : "Seleccionar un padre de familia"}
                     </Text>
                     <MaterialIcons
@@ -238,7 +256,8 @@ export default function RegistrarUsuarioScreen() {
                               setShowParentDropdown(false);
                             }}
                           >
-                            <Text style={styles.dropdownItemText}>
+                            {/* Agregado numberOfLines={1} al nombre de la lista */}
+                            <Text style={styles.dropdownItemText} numberOfLines={1} ellipsizeMode="tail">
                               {p.name} (DNI: {p.dni})
                             </Text>
                           </Pressable>
@@ -293,94 +312,6 @@ export default function RegistrarUsuarioScreen() {
                 </View>
               </View>
             )}
-
-            {/* Role Selector Block */}
-            <View style={styles.blockContainer}>
-              <Text style={styles.blockTitle}>Asignación de Rol</Text>
-
-              <View style={styles.roleGrid}>
-                {/* Padre Option */}
-                <Pressable
-                  style={[
-                    styles.roleCard,
-                    role === "padre" && styles.roleCardActive,
-                  ]}
-                  onPress={() => setRole("padre")}
-                >
-                  <MaterialIcons
-                    name="family-restroom"
-                    size={28}
-                    color={
-                      role === "padre"
-                        ? COLORS.primary
-                        : COLORS.onSurfaceVariant
-                    }
-                  />
-                  <Text
-                    style={[
-                      styles.roleText,
-                      role === "padre" && styles.roleTextActive,
-                    ]}
-                  >
-                    PADRE
-                  </Text>
-                </Pressable>
-
-                {/* Profesor Option */}
-                <Pressable
-                  style={[
-                    styles.roleCard,
-                    role === "profesor" && styles.roleCardActive,
-                  ]}
-                  onPress={() => setRole("profesor")}
-                >
-                  <MaterialIcons
-                    name="school"
-                    size={28}
-                    color={
-                      role === "profesor"
-                        ? COLORS.primary
-                        : COLORS.onSurfaceVariant
-                    }
-                  />
-                  <Text
-                    style={[
-                      styles.roleText,
-                      role === "profesor" && styles.roleTextActive,
-                    ]}
-                  >
-                    PROFESOR
-                  </Text>
-                </Pressable>
-
-                {/* Alumno Option */}
-                <Pressable
-                  style={[
-                    styles.roleCard,
-                    role === "alumno" && styles.roleCardActive,
-                  ]}
-                  onPress={() => setRole("alumno")}
-                >
-                  <MaterialIcons
-                    name="face"
-                    size={28}
-                    color={
-                      role === "alumno"
-                        ? COLORS.primary
-                        : COLORS.onSurfaceVariant
-                    }
-                  />
-                  <Text
-                    style={[
-                      styles.roleText,
-                      role === "alumno" && styles.roleTextActive,
-                    ]}
-                  >
-                    ALUMNO
-                  </Text>
-                </Pressable>
-              </View>
-            </View>
 
             {/* Action Button */}
             <View style={styles.actionContainer}>
