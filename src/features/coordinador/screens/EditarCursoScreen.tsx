@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Aler
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { Picker } from "@react-native-picker/picker";
 import { COLORS } from "@/shared";
-import api from "@/features/auth/services/auth"; // Traemos tu conexión real
+import api from "@/features/auth/services/auth";
 
 export default function EditarCursoScreen() {
   const navigation = useNavigation();
@@ -17,19 +17,15 @@ export default function EditarCursoScreen() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // 1. Traer a los profesores reales de tu base de datos
+  // Fetch profesores
 const fetchProfesores = async () => {
     try {
       setLoading(true);
-      console.log("Intentando descargar lista de usuarios (profesores)...");
       
-      // Asegúrate de que esta sea la URL correcta para obtener TODOS los usuarios en tu backend
       const res = await api.get("/api/users"); 
       
-      console.log("Usuarios recibidos del backend:", res.data);
-
       if (res.data?.data) {
-        // Filtrar y establecer profesores reales
+        // Filtrar por rol profesor
         const soloProfesores = res.data.data.filter((u: any) => u.role === "PROFESOR");
         console.log("Profesores filtrados:", soloProfesores);
         setProfesores(soloProfesores);
@@ -51,7 +47,7 @@ const fetchProfesores = async () => {
     fetchProfesores();
   }, []);
 
-  // 2. Guardar los cambios (Con la lección aprendida del async/await)
+  // Actualizar curso
 const handleGuardar = async () => {
     if (!nombre.trim()) {
       Alert.alert("Aviso", "El nombre del curso no puede estar vacío");
@@ -61,7 +57,7 @@ const handleGuardar = async () => {
     try {
       setSaving(true);
       
-      // Asegurémonos de tener un arreglo limpio de números (IDs)
+      // Preparación de payload
       const idsAlumnosActuales = (curso?.students || []).map((s: any) => s.id);
 
       const payload = {
@@ -70,27 +66,20 @@ const handleGuardar = async () => {
         studentIds: idsAlumnosActuales
       };
 
-      // ¡Este console.log es vital para ver qué le estamos mandando al servidor!
-      console.log("Enviando a API - Curso ID:", curso.id);
-      console.log("Payload EXACTO:", JSON.stringify(payload, null, 2)); 
-      
       const response = await api.put(`/api/classes/${curso.id}`, payload); 
-      
-      console.log("Respuesta del servidor:", response.data);
 
       Alert.alert("Éxito", "Curso actualizado correctamente");
       navigation.goBack();
 
     } catch (error: any) {
-      // Capturar el error detallado del backend nos dará muchas pistas
-      console.error("Error completo al guardar curso:", error.response?.data || error);
-      Alert.alert("Error", `No se pudo actualizar: ${error.response?.data?.message || 'Revisa consola'}`);
+      console.error("Error al guardar curso:", error.response?.data || error);
+      Alert.alert("Error", `No se pudo actualizar: ${error.response?.data?.message || 'Error interno'}`);
     } finally {
       setSaving(false);
     }
   };
 
-  // 3. (Opcional) Eliminar Curso
+  // Eliminar curso
   const handleEliminar = () => {
     Alert.alert(
       "Confirmar Eliminación",
@@ -102,7 +91,6 @@ const handleGuardar = async () => {
           style: "destructive",
           onPress: async () => {
             try {
-              // 👇 Verifica la URL de eliminación en tu backend
               await api.delete(`/api/classes/${curso.id}`);
               Alert.alert("Éxito", "Curso eliminado");
               navigation.goBack();

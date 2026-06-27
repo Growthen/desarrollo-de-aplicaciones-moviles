@@ -35,12 +35,12 @@ export default function UsuariosScreen() {
         id: `student-${s.id}`,
         name: `${s.firstName} ${s.lastName}`,
         dni: s.dni,
-        email: `Código: ${s.studentCode}`, // Mostramos el studentCode en vez de email
+        email: `Código: ${s.studentCode}`,
         role: "ESTUDIANTE",
         isStudent: true,
       }));
 
-      // Filtramos a los coordinadores para que no salgan en la lista (si es que la API los devuelve)
+      // Excluir coordinadores de la lista
       const validUsers = usersData.filter((u: any) => u.role !== "COORDINADOR");
 
       setUsers([...validUsers, ...mappedStudents]);
@@ -52,16 +52,15 @@ export default function UsuariosScreen() {
   };
 
  useEffect(() => {
-    // 1. Cargamos los usuarios la primera vez
+    // Carga inicial
     fetchUsers();
 
-    // 2. Creamos un "vigilante" para que los vuelva a cargar CADA VEZ que regreses a esta pantalla
+    // Recargar al enfocar
     const unsubscribe = navigation.addListener('focus', () => {
       console.log("Pantalla enfocada: Recargando lista de usuarios...");
       fetchUsers();
     });
 
-    // 3. Limpiamos el vigilante para que no haya fugas de memoria
     return unsubscribe;
   }, [navigation]);
 
@@ -213,7 +212,7 @@ export default function UsuariosScreen() {
               const roleColors = getRoleColors(user.role);
 
               return (
-                // 👇 AGREGAMOS EL ONDRESS AQUÍ PARA NAVEGAR A LA PANTALLA DE EDICIÓN 👇
+                // Navegación a edición
                 <Pressable 
                   key={user.id} 
                   style={styles.userCard}
@@ -386,7 +385,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   listContent: {
-    paddingBottom: 100, // Space for FAB
+    paddingBottom: 100,
     gap: 16,
   },
   userCard: {
