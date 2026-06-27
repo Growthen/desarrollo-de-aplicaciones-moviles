@@ -15,6 +15,7 @@ export default function CoordinadorScreen() {
     students: 0,
     teachers: 0,
     parents: 0,
+    courses: 0,
   });
   
   // 1. Estado para guardar los cursos
@@ -80,6 +81,7 @@ useEffect(() => {
           students: studentsRes.data?.data ? studentsRes.data.data.length : 0,
           teachers: teachersRes.data?.data ? teachersRes.data.data.length : 0,
           parents: parentsRes.data?.data ? parentsRes.data.data.length : 0,
+          courses: coursesRes.data?.data ? coursesRes.data.data.length : 0,
         });
 
         if (coursesRes.data?.data) {
@@ -239,6 +241,41 @@ useEffect(() => {
                   <Text style={styles.metricValueSmall}>{metrics.parents}</Text>
                 )}
                 <Text style={styles.metricLabel}>PADRES ACTIVOS</Text>
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.metricCard}>
+            <View
+              style={[
+                styles.cardIndicator,
+                { backgroundColor: "#2E7D32" },
+              ]}
+            />
+            <View style={styles.metricCardContentSmall}>
+              <View
+                style={[
+                  styles.metricIconContainerSmall,
+                  { backgroundColor: "#E8F5E9" },
+                ]}
+              >
+                <MaterialIcons
+                  name="class"
+                  size={20}
+                  color="#2E7D32"
+                />
+              </View>
+              <View style={{ flex: 1, marginLeft: 16 }}>
+                {loading ? (
+                  <ActivityIndicator
+                    size="small"
+                    color="#2E7D32"
+                    style={{ alignSelf: "flex-start" }}
+                  />
+                ) : (
+                  <Text style={styles.metricValueSmall}>{metrics.courses}</Text>
+                )}
+                <Text style={styles.metricLabel}>AULAS ACTIVAS</Text>
               </View>
             </View>
           </View>
