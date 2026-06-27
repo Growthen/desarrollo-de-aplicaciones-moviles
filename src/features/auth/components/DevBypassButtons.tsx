@@ -5,7 +5,7 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import type { AuthRole } from "@/features/auth/types/auth.types";
 
 // Cambia a `false` si deseas ocultar por completo los botones de bypass incluso en modo de desarrollo (dev mode)
-const ENABLE_DEV_BYPASS = false;
+const ENABLE_DEV_BYPASS = true;
 
 export default function DevBypassButtons() {
   // Solo se activa si la variable está activa y estamos en modo de desarrollo

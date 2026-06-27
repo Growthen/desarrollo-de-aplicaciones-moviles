@@ -10,7 +10,7 @@ export default function EditarUsuarioScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   
-  // Recibiremos los datos del usuario directamente al hacer clic en él
+  // Datos del usuario recibidos de la navegación
   const { user } = route.params || { user: {} };
 
   const [name, setName] = useState(user.name || "");
@@ -29,7 +29,7 @@ export default function EditarUsuarioScreen() {
 const handleGuardar = async () => {
     try {
       setLoading(true);
-      // Preparamos los datos tal como los espera tu backend
+      // Preparación de payload
       const payload = {
         name: name,
         email: email,
@@ -39,11 +39,10 @@ const handleGuardar = async () => {
 
       console.log("Enviando actualización...", payload);
       
-      // 👇 CORREGIDO: Apunta a users y usa user.id 👇
       await api.put(`/api/users/coordinator/${user.id}`, payload);
       
       Alert.alert("¡Éxito!", "Los datos del usuario se actualizaron correctamente.");
-      navigation.goBack(); // Regresa a la lista automáticamente
+      navigation.goBack();
     } catch (error) {
       console.error("Error al actualizar:", error);
       Alert.alert("Error", "No se pudo actualizar el usuario. Revisa la consola.");
@@ -65,7 +64,6 @@ const handleGuardar = async () => {
             try {
               setLoading(true);
               
-              // 👇 CORREGIDO: Apunta a users y usa user.id 👇
               await api.delete(`/api/users/${user.id}`);
               
               Alert.alert("Eliminado", "El usuario ha sido dado de baja.");
@@ -102,7 +100,6 @@ const handleGuardar = async () => {
           </View>
 
 <View style={styles.formContainer}>
-            {/* Un solo campo para Nombre Completo */}
             <Text style={styles.label}>Nombre Completo</Text>
             <TextInput 
               style={styles.input} 
