@@ -28,15 +28,15 @@ export default function CrearCursoScreen() {
   const [showTeacherDropdown, setShowTeacherDropdown] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Reemplazamos useEffect por useFocusEffect para que limpie y actualice al entrar
+  // Limpiar y actualizar al enfocar
   useFocusEffect(
     useCallback(() => {
-      // 1. Limpiamos los campos visuales
+      // Limpiar campos visuales
       setCourseName("");
       setSelectedTeacherId(null);
       setShowTeacherDropdown(false);
 
-      // 2. Traemos la lista fresca de profesores
+      // Fetch profesores
       const fetchTeachers = async () => {
         try {
           setLoading(true);
@@ -53,7 +53,6 @@ export default function CrearCursoScreen() {
 
       fetchTeachers();
 
-      // Función de limpieza al salir de la pantalla
       return () => {};
     }, [])
   );
@@ -244,7 +243,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 16,
-    paddingBottom: 100, // Space for bottom action area
+    paddingBottom: 100,
     paddingTop: 24,
   },
   pageHeader: {
@@ -306,7 +305,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surfaceContainerLowest,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "rgba(228, 190, 178, 0.2)", // ghost-border
+    borderColor: "rgba(228, 190, 178, 0.2)",
     padding: 16,
     flexDirection: "row",
     alignItems: "center",
@@ -333,11 +332,11 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: "rgba(254, 248, 241, 0.9)", // surface with opacity
+    backgroundColor: "rgba(254, 248, 241, 0.9)",
     borderTopWidth: 1,
     borderTopColor: "rgba(228, 190, 178, 0.1)",
     padding: 16,
-    paddingBottom: Platform.OS === "ios" ? 34 : 16, // Safe area bottom
+    paddingBottom: Platform.OS === "ios" ? 34 : 16,
     shadowColor: COLORS.onSurface,
     shadowOffset: { width: 0, height: -8 },
     shadowOpacity: 0.04,

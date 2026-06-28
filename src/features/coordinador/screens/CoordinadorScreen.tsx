@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, View, Text, ScrollView, Pressable, SafeAreaView, Platform, StatusBar, ActivityIndicator, Modal, Animated, TouchableWithoutFeedback } from "react-native";
+import { StyleSheet, View, Text, ScrollView, Pressable, Platform, StatusBar, ActivityIndicator, Modal, Animated, TouchableWithoutFeedback } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { COLORS } from "@/shared";
 import useAuth from "@/features/auth/hooks/useAuth";
@@ -15,13 +16,15 @@ export default function CoordinadorScreen() {
     students: 0,
     teachers: 0,
     parents: 0,
+    courses: 0,
+    incidents: 0,
   });
   
-  // 1. Estado para guardar los cursos
+  // Estado para cursos recientes
   const [recentCourses, setRecentCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // --- LÓGICA DEL MENÚ HAMBURGUESA PERSONALIZADO ---
+  // Menú lateral
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const slideAnim = React.useRef(new Animated.Value(-300)).current; 
 
@@ -41,7 +44,6 @@ export default function CoordinadorScreen() {
       }).start();
     }
   };
-  // --------------------------------------------------
 
   const getScreenTitle = () => {
     switch (route.name) {
@@ -52,13 +54,13 @@ export default function CoordinadorScreen() {
     }
   };
 
-  // 2. useEffect actualizado para traer métricas Y cursos juntos
+  // Fetch de métricas y cursos
 useEffect(() => {
     const fetchMetricsAndCourses = async () => {
       try {
         setLoading(true);
 
-        // 🛡️ Función escudo: Si una ruta falla en el backend, atrapa el error y devuelve un arreglo vacío
+        // Manejo seguro de peticiones
         const safeGet = async (url: string) => {
           try {
             return await api.get(url);
@@ -68,18 +70,20 @@ useEffect(() => {
           }
         };
 
-        // Ahora usamos nuestra función segura en lugar de api.get directamente
-        const [studentsRes, teachersRes, parentsRes, coursesRes] = await Promise.all([
+        const [studentsRes, teachersRes, parentsRes, coursesRes, incidentsRes] = await Promise.all([
           safeGet("/api/students"),
           safeGet("/api/users/teachers"),
           safeGet("/api/users/parents"),
           safeGet("/api/classes"),
+          safeGet("/api/incidents"),
         ]);
 
         setMetrics({
           students: studentsRes.data?.data ? studentsRes.data.data.length : 0,
           teachers: teachersRes.data?.data ? teachersRes.data.data.length : 0,
           parents: parentsRes.data?.data ? parentsRes.data.data.length : 0,
+          courses: coursesRes.data?.data ? coursesRes.data.data.length : 0,
+          incidents: incidentsRes.data?.data ? incidentsRes.data.data.length : 0,
         });
 
         if (coursesRes.data?.data) {
@@ -242,6 +246,77 @@ useEffect(() => {
               </View>
             </View>
           </View>
+
+          <View style={styles.metricCard}>
+            <View
+              style={[
+                styles.cardIndicator,
+                { backgroundColor: "#2E7D32" },
+              ]}
+            />
+            <View style={styles.metricCardContentSmall}>
+              <View
+                style={[
+                  styles.metricIconContainerSmall,
+                  { backgroundColor: "#E8F5E9" },
+                ]}
+              >
+                <MaterialIcons
+                  name="class"
+                  size={20}
+                  color="#2E7D32"
+                />
+              </View>
+              <View style={{ flex: 1, marginLeft: 16 }}>
+                {loading ? (
+                  <ActivityIndicator
+                    size="small"
+                    color="#2E7D32"
+                    style={{ alignSelf: "flex-start" }}
+                  />
+                ) : (
+                  <Text style={styles.metricValueSmall}>{metrics.courses}</Text>
+                )}
+                <Text style={styles.metricLabel}>AULAS ACTIVAS</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Tarjeta de Incidencias */}
+          <View style={styles.metricCard}>
+            <View
+              style={[
+                styles.cardIndicator,
+                { backgroundColor: "#D32F2F" }, // Rojo escarlata
+              ]}
+            />
+            <View style={styles.metricCardContentSmall}>
+              <View
+                style={[
+                  styles.metricIconContainerSmall,
+                  { backgroundColor: "#FFEBEE" }, // Fondo rojo claro
+                ]}
+              >
+                <MaterialIcons
+                  name="report-problem"
+                  size={20}
+                  color="#D32F2F"
+                />
+              </View>
+              <View style={{ flex: 1, marginLeft: 16 }}>
+                {loading ? (
+                  <ActivityIndicator
+                    size="small"
+                    color="#D32F2F"
+                    style={{ alignSelf: "flex-start" }}
+                  />
+                ) : (
+                  <Text style={styles.metricValueSmall}>{metrics.incidents}</Text>
+                )}
+                <Text style={styles.metricLabel}>INCIDENCIAS</Text>
+              </View>
+            </View>
+          </View>
         </View>
 
         {/* Quick Actions Section */}
@@ -281,7 +356,7 @@ useEffect(() => {
           </View>
         </View>
 
-        {/* 3. NUEVA SECCIÓN: LISTA DE CURSOS EN EL DASHBOARD */}
+        {/* Lista de cursos activos */}
         <View style={styles.coursesSection}>
           <Text style={styles.sectionTitle}>Cursos Activos</Text>
           
@@ -318,7 +393,7 @@ useEffect(() => {
 
       </ScrollView>
 
-      {/* MENÚ HAMBURGUESA PERSONALIZADO */}
+      {/* Modal de menú lateral */}
       <Modal visible={isMenuOpen} transparent={true} animationType="none" onRequestClose={toggleMenu}>
         <View style={styles.modalOverlay}>
           <TouchableWithoutFeedback onPress={toggleMenu}>
@@ -373,7 +448,7 @@ const styles = StyleSheet.create({
   actionButton: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 16, paddingHorizontal: 16, borderRadius: 30, shadowColor: COLORS.onSurface, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 4, gap: 8 },
   actionButtonText: { fontSize: 14, fontWeight: "600" },
   
-  // Estilos del Menú Hamburguesa Custom (NO BORRAR)
+  // Estilos del menú lateral
   modalOverlay: { flex: 1, flexDirection: 'row' },
   modalBackground: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.5)' },
   drawerMenu: { width: 280, backgroundColor: COLORS.surface, height: '100%', paddingTop: Platform.OS === 'ios' ? 50 : 30, paddingHorizontal: 20, elevation: 10, shadowColor: '#000', shadowOffset: { width: 5, height: 0 }, shadowOpacity: 0.3, shadowRadius: 10 },
@@ -383,7 +458,7 @@ const styles = StyleSheet.create({
   drawerItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.05)' },
   drawerItemText: { fontSize: 16, marginLeft: 15, color: COLORS.onSurface, fontWeight: '500' },
 
-  // Estilos de la Nueva Lista de Cursos
+  // Estilos de la lista de cursos
   coursesSection: { marginBottom: 40 },
   courseItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.surfaceContainerLowest, padding: 16, borderRadius: 12, marginBottom: 12, shadowColor: COLORS.onSurface, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
   courseIcon: { width: 48, height: 48, borderRadius: 24, backgroundColor: COLORS.primaryContainer, justifyContent: 'center', alignItems: 'center', marginRight: 16 },

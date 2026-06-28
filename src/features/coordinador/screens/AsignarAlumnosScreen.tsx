@@ -47,16 +47,15 @@ export default function AsignarAlumnosScreen() {
   };
 
 useEffect(() => {
-    // 1. Carga inicial
+    // Carga inicial
     fetchStudents();
 
-    // 2. El vigilante que obliga a recargar la lista de alumnos cada vez que entras
+    // Recargar al enfocar
     const unsubscribe = navigation.addListener('focus', () => {
       console.log("Recargando lista de alumnos...");
       fetchStudents();
     });
 
-    // 3. Limpieza
     return unsubscribe;
   }, [navigation]);
 
@@ -122,18 +121,16 @@ useEffect(() => {
           studentIds: selectedIds,
         });
 
-        // ✅ CÓDIGO CORREGIDO
-Alert.alert(
-  "Éxito",
-  "Curso creado e inscripciones registradas correctamente",
-  [
-    { 
-      text: "OK", 
-      // Lo mandamos de regreso a la pantalla principal
-      onPress: () => navigation.navigate("CoordinadorDashboard") 
-    }
-  ]
-);
+        Alert.alert(
+          "Éxito",
+          "Curso creado e inscripciones registradas correctamente",
+          [
+            { 
+              text: "OK", 
+              onPress: () => navigation.navigate("CoordinadorDashboard") 
+            }
+          ]
+        );
       }
     } catch (error: any) {
       const errMsg =
