@@ -11,6 +11,8 @@ export async function getIncidences() {
     timestamp: incident.incidentDate,
     course: incident.className,
     student: incident.studentName,
+    studentId: incident.studentId,
+    classId: incident.classId,
   }));
 }
 
