@@ -2,38 +2,38 @@ import { Course, Incidence } from "../types/types";
 
 export const mockCourses: Course[] = [
   {
-    id: "1",
+    id: 1,
     title: "Matemáticas - 1A",
     subtitle: "25 alumnos",
     classroom: "1A",
     students: [
       {
-        id: "s1",
+        id: 101,
         name: "Juan Pérez",
         dni: "74839211",
       },
       {
-        id: "s2",
+        id: 102,
         name: "María Gómez",
         dni: "71592833",
       },
     ],
   },
   {
-    id: "2",
+    id: 2,
     title: "Ciencias - 2B",
     subtitle: "22 alumnos",
     classroom: "2B",
     students: [
       {
-        id: "s3",
+        id: 103,
         name: "Ana Torres",
         dni: "76283911",
       },
     ],
   },
   {
-    id: "3",
+    id: 3,
     title: "Historia - 3C",
     subtitle: "18 alumnos",
     classroom: "3C",
@@ -43,7 +43,7 @@ export const mockCourses: Course[] = [
 
 export const mockIncidences: Incidence[] = [
   {
-    id: "i1",
+    id: 1,
     title: "Retraso en la clase",
     description:
       "El alumno llegó tarde a clase y pidió permiso después de que la clase ya había comenzado.",
@@ -53,7 +53,7 @@ export const mockIncidences: Incidence[] = [
     status: "No leída",
   },
   {
-    id: "i2",
+    id: 2,
     title: "Falta de tarea",
     description: "María no entregó la tarea de fin de semana.",
     course: "Ciencias - 2B",
