@@ -14,19 +14,36 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { COLORS } from "@/shared";
 import { useNavigation } from "@react-navigation/native";
-import { getUsers } from "@/features/coordinador/services/coordinadorService";
+import { getUsers, getStudents } from "@/features/coordinador/services/coordinadorService";
 
 export default function UsuariosScreen() {
   const navigation = useNavigation<any>();
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeFilter, setActiveFilter] = useState("TODOS");
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const data = await getUsers();
-      setUsers(data);
+      const [usersData, studentsData] = await Promise.all([
+        getUsers(),
+        getStudents(),
+      ]);
+
+      const mappedStudents = studentsData.map((s: any) => ({
+        id: `student-${s.id}`,
+        name: `${s.firstName} ${s.lastName}`,
+        dni: s.dni,
+        email: `Código: ${s.studentCode}`,
+        role: "ESTUDIANTE",
+        isStudent: true,
+      }));
+
+      // Excluir coordinadores de la lista
+      const validUsers = usersData.filter((u: any) => u.role !== "COORDINADOR");
+
+      setUsers([...validUsers, ...mappedStudents]);
     } catch (error) {
       console.error("Error fetching users directory:", error);
     } finally {
@@ -35,16 +52,15 @@ export default function UsuariosScreen() {
   };
 
  useEffect(() => {
-    // 1. Cargamos los usuarios la primera vez
+    // Carga inicial
     fetchUsers();
 
-    // 2. Creamos un "vigilante" para que los vuelva a cargar CADA VEZ que regreses a esta pantalla
+    // Recargar al enfocar
     const unsubscribe = navigation.addListener('focus', () => {
       console.log("Pantalla enfocada: Recargando lista de usuarios...");
       fetchUsers();
     });
 
-    // 3. Limpiamos el vigilante para que no haya fugas de memoria
     return unsubscribe;
   }, [navigation]);
 
@@ -59,9 +75,16 @@ export default function UsuariosScreen() {
   };
 
   const filteredUsers = users.filter(
-    (u) =>
-      (u.name && u.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (u.role && u.role.toLowerCase().includes(searchQuery.toLowerCase())),
+    (u) => {
+      const matchSearch = 
+        (u.name && u.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (u.role && u.role.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (u.dni && u.dni.toLowerCase().includes(searchQuery.toLowerCase()));
+      
+      const matchRole = activeFilter === "TODOS" || (u.role && u.role.toUpperCase() === activeFilter);
+      
+      return matchSearch && matchRole;
+    }
   );
 
   return (
@@ -92,7 +115,7 @@ export default function UsuariosScreen() {
         <View style={styles.pageHeader}>
           <Text style={styles.title}>Directorio de Usuarios Creados</Text>
           <Text style={styles.subtitle}>
-            Lista de padres y profesores creados por el coordinador actual.
+            Lista de estudiantes, padres y profesores registrados en el sistema.
           </Text>
         </View>
 
@@ -106,11 +129,39 @@ export default function UsuariosScreen() {
           />
           <TextInput
             style={styles.searchInput}
-            placeholder="Buscar por nombre o rol..."
+            placeholder="Buscar por nombre, DNI o rol..."
             placeholderTextColor="rgba(91, 64, 56, 0.5)"
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
+        </View>
+
+        {/* Filter Buttons */}
+        <View style={styles.filterContainer}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
+            {[
+              { label: "Todos", value: "TODOS", activeColor: COLORS.onSurfaceVariant, activeBg: COLORS.surfaceVariant },
+              { label: "Estudiantes", value: "ESTUDIANTE", activeColor: COLORS.onPrimaryContainer, activeBg: COLORS.primaryContainer },
+              { label: "Profesores", value: "PROFESOR", activeColor: COLORS.onSecondaryContainer, activeBg: COLORS.secondaryContainer },
+              { label: "Padres", value: "PADRE", activeColor: COLORS.onTertiaryContainer, activeBg: COLORS.tertiaryContainer },
+            ].map((filter) => {
+              const isActive = activeFilter === filter.value;
+              return (
+                <Pressable
+                  key={filter.value}
+                  style={[
+                    styles.filterButton,
+                    isActive ? { backgroundColor: filter.activeBg, borderColor: filter.activeBg } : {}
+                  ]}
+                  onPress={() => setActiveFilter(filter.value)}
+                >
+                  <Text style={[styles.filterButtonText, isActive ? { color: filter.activeColor } : {}]}>
+                    {filter.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
         </View>
 
         {/* Directory Grid */}
@@ -149,9 +200,19 @@ export default function UsuariosScreen() {
         ) : (
 <ScrollView style={styles.listContainer} contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false}>
             {filteredUsers.map((user) => {
-              const isTeacher = user.role === "PROFESOR";
+              const getRoleColors = (role: string) => {
+                if (role === "PROFESOR") {
+                  return { indicator: COLORS.secondary, bg: COLORS.secondaryContainer, text: COLORS.onSecondaryContainer };
+                } else if (role === "PADRE") {
+                  return { indicator: COLORS.tertiary, bg: COLORS.tertiaryContainer, text: COLORS.onTertiaryContainer };
+                } else {
+                  return { indicator: COLORS.primary, bg: COLORS.primaryContainer, text: COLORS.onPrimaryContainer };
+                }
+              };
+              const roleColors = getRoleColors(user.role);
+
               return (
-                // 👇 AGREGAMOS EL ONDRESS AQUÍ PARA NAVEGAR A LA PANTALLA DE EDICIÓN 👇
+                // Navegación a edición
                 <Pressable 
                   key={user.id} 
                   style={styles.userCard}
@@ -160,7 +221,7 @@ export default function UsuariosScreen() {
                     navigation.navigate("CoordinadorEditarUsuario", { user: user });
                   }}
                 >
-                  <View style={[styles.cardIndicator, { backgroundColor: isTeacher ? COLORS.secondary : COLORS.primary }]} />
+                  <View style={[styles.cardIndicator, { backgroundColor: roleColors.indicator }]} />
                   
                   <View style={styles.cardContent}>
                     <View style={styles.userInfo}>
@@ -196,9 +257,7 @@ export default function UsuariosScreen() {
                       style={[
                         styles.roleBadge,
                         {
-                          backgroundColor: isTeacher
-                            ? COLORS.secondaryContainer
-                            : COLORS.primaryFixed,
+                          backgroundColor: roleColors.bg,
                         },
                       ]}
                     >
@@ -206,9 +265,7 @@ export default function UsuariosScreen() {
                         style={[
                           styles.roleBadgeText,
                           {
-                            color: isTeacher
-                              ? COLORS.onSecondaryContainer
-                              : COLORS.onPrimaryFixed,
+                            color: roleColors.text,
                           },
                         ]}
                       >
@@ -288,7 +345,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(228, 190, 178, 0.2)",
     paddingHorizontal: 16,
-    marginBottom: 24,
+    marginBottom: 16,
     shadowColor: COLORS.onSurface,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -304,11 +361,31 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: COLORS.onSurface,
   },
+  filterContainer: {
+    marginBottom: 16,
+  },
+  filterScroll: {
+    gap: 8,
+    paddingBottom: 8,
+  },
+  filterButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: COLORS.outlineVariant,
+    backgroundColor: COLORS.surfaceContainerLowest,
+  },
+  filterButtonText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: COLORS.onSurfaceVariant,
+  },
   listContainer: {
     flex: 1,
   },
   listContent: {
-    paddingBottom: 100, // Space for FAB
+    paddingBottom: 100,
     gap: 16,
   },
   userCard: {

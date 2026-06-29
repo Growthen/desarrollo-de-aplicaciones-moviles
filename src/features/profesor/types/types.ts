@@ -19,6 +19,8 @@ export interface Incidence {
 
   course: string;
   student: string;
+  studentId?: number;
+  classId?: number;
 
   timestamp: string;
   status: string;

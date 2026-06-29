@@ -14,7 +14,7 @@ export default function DetalleCursoScreen() {
   const [courseDetails, setCourseDetails] = useState<any>(null);
 
 useEffect(() => {
-    // 1. Mantenemos tu función exacta aquí adentro
+    // Fetch detalles del curso
     const fetchCourseDetails = async () => {
       try {
         setLoading(true);
@@ -29,15 +29,14 @@ useEffect(() => {
       }
     };
 
-    // 2. Cargamos los datos la primera vez que entras a la pantalla
+    // Carga inicial
     fetchCourseDetails();
 
-    // 3. Le decimos a la app que VUELVA a ejecutar la función cada vez que regresas
+    // Recargar al enfocar
     const unsubscribe = navigation.addListener('focus', () => {
       fetchCourseDetails();
     });
 
-    // 4. Limpieza automática
     return unsubscribe;
   }, [courseId, navigation]); 
   
@@ -51,7 +50,7 @@ useEffect(() => {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Detalle del Curso</Text>
         
-        {/* 👇 Botón de Lápiz agregado aquí 👇 */}
+        {/* Botón de edición */}
 <TouchableOpacity 
   style={styles.backButton} 
 onPress={() => {
@@ -94,7 +93,6 @@ onPress={() => {
               <MaterialIcons name="person" size={24} color={COLORS.onSecondaryContainer} />
             </View>
             <View style={styles.personInfo}>
-              {/* 👇 Variable corregida: teacherName 👇 */}
               <Text style={styles.personName}>
                 {courseDetails.teacherName || "Sin Asignar"}
               </Text>
@@ -111,7 +109,6 @@ onPress={() => {
                   <MaterialIcons name="face" size={24} color={COLORS.onTertiaryContainer} />
                 </View>
                 <View style={styles.personInfo}>
-                  {/* 👇 Variables corregidas: fullName y studentCode 👇 */}
                   <Text style={styles.personName}>{student.fullName}</Text>
                   <Text style={styles.personRole}>Código: {student.studentCode || "N/A"}</Text>
                 </View>

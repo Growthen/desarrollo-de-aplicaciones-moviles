@@ -10,6 +10,7 @@ import {
   StatusBar,
   Switch,
   ActivityIndicator,
+  TextInput,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -22,6 +23,8 @@ export default function CursosScreen() {
   const [courses, setCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeStates, setActiveStates] = useState<Record<number, boolean>>({});
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("TODOS");
 
   const fetchCourses = async () => {
     try {
@@ -56,6 +59,15 @@ export default function CursosScreen() {
       [id]: !prev[id],
     }));
   };
+
+  const filteredCourses = courses.filter((course) => {
+    const matchName = course.name?.toLowerCase().includes(searchQuery.toLowerCase());
+    const isActive = !!activeStates[course.id];
+    let matchStatus = true;
+    if (statusFilter === "ACTIVOS") matchStatus = isActive;
+    if (statusFilter === "INACTIVOS") matchStatus = !isActive;
+    return matchName && matchStatus;
+  });
 
   return (
     <SafeAreaView edges={["left", "right", "bottom"]} style={styles.safeArea}>
@@ -99,9 +111,52 @@ export default function CursosScreen() {
             </Pressable>
           </View>
 
+          {/* Search and Filters */}
+          <View style={styles.searchContainer}>
+            <MaterialIcons
+              name="search"
+              size={24}
+              color={COLORS.onSurfaceVariant}
+              style={{ marginRight: 12 }}
+            />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Buscar curso por nombre..."
+              placeholderTextColor="rgba(91, 64, 56, 0.5)"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+          </View>
+
+          <View style={styles.filterContainer}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
+              {[
+                { label: "Todos", value: "TODOS", activeColor: COLORS.onSurfaceVariant, activeBg: COLORS.surfaceVariant },
+                { label: "Activos", value: "ACTIVOS", activeColor: COLORS.onPrimaryContainer, activeBg: COLORS.primaryContainer },
+                { label: "Inactivos", value: "INACTIVOS", activeColor: COLORS.onSecondaryContainer, activeBg: COLORS.secondaryContainer },
+              ].map((filter) => {
+                const isActive = statusFilter === filter.value;
+                return (
+                  <Pressable
+                    key={filter.value}
+                    style={[
+                      styles.filterButton,
+                      isActive ? { backgroundColor: filter.activeBg, borderColor: filter.activeBg } : {}
+                    ]}
+                    onPress={() => setStatusFilter(filter.value)}
+                  >
+                    <Text style={[styles.filterButtonText, isActive ? { color: filter.activeColor } : {}]}>
+                      {filter.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          </View>
+
           {/* Course Cards Grid */}
           <View style={styles.cardsContainer}>
-            {courses.length === 0 ? (
+            {filteredCourses.length === 0 ? (
               <View style={{ padding: 32, alignItems: "center" }}>
                 <MaterialIcons
                   name="menu-book"
@@ -121,7 +176,7 @@ export default function CursosScreen() {
                 </Text>
               </View>
             ) : (
-              courses.map((course) => {
+              filteredCourses.map((course) => {
                 const isActive = !!activeStates[course.id];
                 return (
                   <View
@@ -313,6 +368,47 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: COLORS.onSurfaceVariant,
     marginBottom: 32,
+  },
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: COLORS.surfaceContainerLowest,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "rgba(228, 190, 178, 0.2)",
+    paddingHorizontal: 16,
+    marginBottom: 16,
+    shadowColor: COLORS.onSurface,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 1,
+  },
+  searchInput: {
+    flex: 1,
+    height: 48,
+    fontSize: 16,
+    color: COLORS.onSurface,
+  },
+  filterContainer: {
+    marginBottom: 24,
+  },
+  filterScroll: {
+    gap: 8,
+    paddingBottom: 8,
+  },
+  filterButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: COLORS.outlineVariant,
+    backgroundColor: COLORS.surfaceContainerLowest,
+  },
+  filterButtonText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: COLORS.onSurfaceVariant,
   },
   primaryButton: {
     backgroundColor: COLORS.primary,

@@ -13,7 +13,11 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "La app necesita acceso a tu galería para cambiar tu foto de perfil.",
+        "NSCameraUsageDescription": "La app necesita acceso a la cámara para tomar una foto de perfil."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -21,11 +25,25 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.CAMERA"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": ["expo-secure-store", "expo-font"]
+    "plugins": [
+      "expo-secure-store",
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "La app necesita acceso a tu galería para cambiar tu foto de perfil.",
+          "cameraPermission": "La app necesita acceso a la cámara para tomar una foto de perfil."
+        }
+      ]
+    ]
   }
 }

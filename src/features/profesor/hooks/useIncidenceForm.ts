@@ -3,11 +3,16 @@ import { Course, Student } from "../types/types";
 import { getTeacherCourses } from "../services/courseService";
 import { getStudentsByClass } from "../services/studentService";
 
-export function useIncidenceForm(initialCourse?: Course | null, initialStudent?: Student | null) {
+export function useIncidenceForm(
+  initialCourse?: Course | null,
+  initialStudent?: Student | null,
+) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [course, setCourse] = useState<Course | null>(initialCourse ?? null);
-  const [student, setStudent] = useState<Student | null>(initialStudent ?? null);
+  const [student, setStudent] = useState<Student | null>(
+    initialStudent ?? null,
+  );
   const [courses, setCourses] = useState<Course[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [courseModalVisible, setCourseModalVisible] = useState(false);

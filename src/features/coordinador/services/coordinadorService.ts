@@ -46,6 +46,11 @@ export async function getCourses() {
   return response.data?.data || [];
 }
 
+export async function getIncidents() {
+  const response = await api.get("/api/incidents");
+  return response.data?.data || [];
+}
+
 export async function updateClassStudents(
   classId: number,
   studentIds: number[],

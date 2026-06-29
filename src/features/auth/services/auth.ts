@@ -11,7 +11,7 @@ import type {
 } from "../types/auth.types";
 import { getToken } from "./token";
 
-// 2. IMPORTANTE: Cambia "192.168.1.X" por la IP real de tu laptop (la que sacas con ipconfig)
+// 2. 10.0.2.2 = localhost, el 8080 es el puerto para el backend
 const API_BASE_URL = "http://10.0.2.2:8080";
 
 // 3. Agregamos "axios." antes del create

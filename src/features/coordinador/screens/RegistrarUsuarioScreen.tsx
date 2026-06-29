@@ -1,9 +1,11 @@
 import React, { useState, useCallback } from "react";
-import { StyleSheet, View, Text, TextInput, Pressable, ScrollView, SafeAreaView, Platform, StatusBar, KeyboardAvoidingView, ActivityIndicator, Alert } from "react-native";
+import { StyleSheet, View, Text, TextInput, Pressable, ScrollView, Platform, StatusBar, KeyboardAvoidingView, ActivityIndicator, Alert } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { COLORS } from "@/shared";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import api from "@/features/auth/services/auth";
+import { createStudent, createUser } from "@/features/coordinador/services/coordinadorService";
 
 export default function RegistrarUsuarioScreen() {
   const navigation = useNavigation<any>();
@@ -19,7 +21,7 @@ export default function RegistrarUsuarioScreen() {
   const [showParentDropdown, setShowParentDropdown] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  // Implementamos useFocusEffect para limpiar el formulario al entrar
+  // Limpiar formulario al enfocar
   useFocusEffect(
     useCallback(() => {
       const fetchParents = async () => {
@@ -35,7 +37,7 @@ export default function RegistrarUsuarioScreen() {
 
       fetchParents();
       
-      // Limpiamos los estados
+      // Reset de estados
       setFullName("");
       setDni("");
       setEmail("");
@@ -151,7 +153,7 @@ export default function RegistrarUsuarioScreen() {
           {/* Form Area */}
           <View style={styles.formContainer}>
             
-            {/* 1. Moviendo el selector de Rol ARRIBA */}
+            {/* Selector de rol */}
             <View style={styles.blockContainer}>
               <Text style={styles.blockTitle}>Asignación de Rol</Text>
               
@@ -224,7 +226,6 @@ export default function RegistrarUsuarioScreen() {
                     style={styles.inputContainerDropdown}
                     onPress={() => setShowParentDropdown(!showParentDropdown)}
                   >
-                    {/* Agregado numberOfLines={1} para que no se desborde */}
                     <Text 
                       style={[styles.inputText, !selectedParentId && styles.placeholderText]} 
                       numberOfLines={1} 
@@ -256,7 +257,6 @@ export default function RegistrarUsuarioScreen() {
                               setShowParentDropdown(false);
                             }}
                           >
-                            {/* Agregado numberOfLines={1} al nombre de la lista */}
                             <Text style={styles.dropdownItemText} numberOfLines={1} ellipsizeMode="tail">
                               {p.name} (DNI: {p.dni})
                             </Text>
