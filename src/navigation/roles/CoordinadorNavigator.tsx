@@ -1,21 +1,19 @@
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
-import { 
-  CoordinadorScreen, CursosScreen, CrearCursoScreen, 
+import {
+  CoordinadorScreen, CursosScreen, CrearCursoScreen,
   AsignarAlumnosScreen, UsuariosScreen, RegistrarUsuarioScreen
 } from "@/features/coordinador";
 import DetalleCursoScreen from "@/features/coordinador/screens/DetalleCursoScreen";
 import EditarUsuarioScreen from "@/features/coordinador/screens/EditarUsuarioScreen";
 import EditarCursoScreen from "@/features/coordinador/screens/EditarCursoScreen";
-console.log('EditarCursoScreen:', EditarCursoScreen);
 import ConfigurationNavigator from "../components/ConfigurationNavigator";
 import { MaterialIcons } from "@expo/vector-icons";
-import { COLORS } from "@/shared";
 
 const Tab = createBottomTabNavigator();
 export default function CoordinadorNavigator() {
-  
+
   return (
     <Tab.Navigator screenOptions={{ headerShown: false }}>
       <Tab.Screen name="CoordinadorDashboard" component={CoordinadorScreen} options={{ title: "Inicio", tabBarIcon: ({ color, size }) => <MaterialIcons name="dashboard" size={size} color={color} /> }} />

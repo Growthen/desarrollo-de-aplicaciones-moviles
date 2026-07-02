@@ -1,18 +1,18 @@
 import React, { useState, useCallback } from "react";
-import { 
-  StyleSheet, 
-  View, 
-  Text, 
-  TextInput, 
-  Pressable, 
-  ScrollView, 
-  SafeAreaView, 
-  Platform, 
-  StatusBar, 
-  KeyboardAvoidingView, 
-  Alert, 
-  ActivityIndicator 
+import {
+  StyleSheet,
+  View,
+  Text,
+  TextInput,
+  Pressable,
+  ScrollView,
+  Platform,
+  StatusBar,
+  KeyboardAvoidingView,
+  Alert,
+  ActivityIndicator
 } from "react-native";
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { MaterialIcons } from "@expo/vector-icons";
 import { COLORS } from "@/shared";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
@@ -53,7 +53,7 @@ export default function CrearCursoScreen() {
 
       fetchTeachers();
 
-      return () => {};
+      return () => { };
     }, [])
   );
 
